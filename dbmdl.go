@@ -11,14 +11,18 @@ const (
 )
 
 // Privates
-var dialects map[string]*Dialect
-
 type table struct {
 	dialect *Dialect
 	name    string
 }
 
 var tables map[reflect.Type]*table
+var dialects map[string]*Dialect
+
+func init() {
+	tables = make(map[reflect.Type]*table)
+	dialects = make(map[string]*Dialect)
+}
 
 // RegisterDialect will add a dialect so that it can be used later
 func RegisterDialect(d string, strct *Dialect) error {
