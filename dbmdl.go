@@ -1,6 +1,9 @@
 package dbmdl
 
-import "reflect"
+import (
+	"errors"
+	"reflect"
+)
 
 // Constants
 const (
@@ -9,15 +12,30 @@ const (
 
 // Privates
 var dialects map[string]*Dialect
-var tables map[reflect.Type]string
+
+type table struct {
+	dialect *Dialect
+	name    string
+}
+
+var tables map[reflect.Type]*table
 
 // RegisterDialect will add a dialect so that it can be used later
-func RegisterDialect(d string, strct *Dialect) {
+func RegisterDialect(d string, strct *Dialect) error {
 	dialects[d] = strct
+
+	return nil
 }
 
 // RegisterStruct registers a struct for use with dbmdl
-func RegisterStruct(d string, t string, s ifc) {
+func RegisterStruct(dlct string, t string, s ifc) error {
+	d, ok := dialects[dlct]
+	if !ok {
+		return errors.New("Failed to register struct; dialect unknown!")
+	}
+
 	refType := reflect.TypeOf(s)
-	tables[refType] = t
+	tables[refType] = &table{dialect: d, name: t}
+
+	return nil
 }

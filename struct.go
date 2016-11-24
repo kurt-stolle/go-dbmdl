@@ -1,22 +1,36 @@
 package dbmdl
 
+import (
+	"errors"
+	"reflect"
+)
+
 // Interface for all dbmodels
 type ifc interface {
-	Load() error
-	Save() error
+	CreateTables() error
 }
 
 // Struct is a struct that can be inherited for use with dbmdl
 type Struct struct{}
 
-// Load will populate the struct from the database
-func (s *Struct) Load() error {
+// CreateTables will register the struct in the database
+func (s *Struct) CreateTables() error {
+	var ref = reflect.TypeOf(s)
+	var fields []string
 
-	return nil
-}
+	for i := 0; i < ref.NumField(); i++ {
+		field := ref.Field(i)              // Get the field at index i
+		dataType := field.Tag.Get("dbmdl") // Find the datatype from the dbmdl tag
 
-// Save will save the struct from the database
-func (s *Struct) Save() error {
+		if dataType == "" {
+			return errors.New("Failed to create tables for struct " + ref.Name() + ", field " + field.Name + " does not have a `dbmdl` tag")
+		}
+
+		fields = append(fields, field.Name+" "+dataType)
+	}
+
+	t := tables[ref]
+	query(t.dialect.CreateTable(t.name, fields...))
 
 	return nil
 }
