@@ -5,8 +5,8 @@ import (
 	"reflect"
 )
 
-// Interface for all dbmodels
-type ifc interface {
+// StructInterface for all dbmodels
+type StructInterface interface {
 	CreateTables() error
 }
 

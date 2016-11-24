@@ -28,7 +28,7 @@ func RegisterDialect(d string, strct *Dialect) error {
 }
 
 // RegisterStruct registers a struct for use with dbmdl
-func RegisterStruct(dlct string, t string, s ifc) error {
+func RegisterStruct(dlct string, t string, s StructInterface) error {
 	d, ok := dialects[dlct]
 	if !ok {
 		return errors.New("Failed to register struct; dialect unknown!")
