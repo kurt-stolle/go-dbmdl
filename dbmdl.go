@@ -2,6 +2,7 @@ package dbmdl
 
 import (
 	"errors"
+	"log"
 	"reflect"
 )
 
@@ -40,6 +41,10 @@ func RegisterStruct(dlct string, t string, s StructInterface) error {
 
 	refType := reflect.TypeOf(s)
 	tables[refType] = &table{dialect: d, name: t}
+
+	log.Println("[dbmdl] Registered struct: " + refType.Name())
+
+	s.CreateTables()
 
 	return nil
 }
