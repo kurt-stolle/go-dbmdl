@@ -27,6 +27,8 @@ func init() {
 
 // RegisterDialect will add a dialect so that it can be used later
 func RegisterDialect(d string, strct *Dialect) error {
+	log.Println("[dbmdl] Registered dialect: " + d)
+
 	dialects[d] = strct
 
 	return nil
@@ -36,15 +38,19 @@ func RegisterDialect(d string, strct *Dialect) error {
 func RegisterStruct(dlct string, t string, s StructInterface) error {
 	d, ok := dialects[dlct]
 	if !ok {
-		return errors.New("Failed to register struct; dialect unknown!")
+		return errors.New("[dbmdl] Failed to register struct; dialect " + dlct + " unknown!")
 	}
 
-	refType := reflect.TypeOf(s)
+	refType := reflect.TypeOf(s).Elem()
+
+	if _, exists := tables[refType]; exists {
+		return errors.New("[dbmdl] Type " + refType.Name() + " is already registered!")
+	}
+
 	tables[refType] = &table{dialect: d, name: t}
 
 	log.Println("[dbmdl] Registered struct: " + refType.Name())
 
-	s.CreateTables()
-
-	return nil
+	// Return possible errors from table creation
+	return s.CreateTables(refType)
 }

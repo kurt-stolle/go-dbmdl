@@ -1,5 +1,7 @@
 package dbmdl
 
+import "strings"
+
 // Dialect is a struct that stores the querying methods
 type Dialect struct {
 	CreateTable func(tableName string, fields ...string) string
@@ -24,5 +26,7 @@ func QueryChannel() chan string {
 
 // query is our internal query function
 func query(q string) {
-	ch <- q
+	go func() {
+		ch <- strings.Trim(q, " \t\n")
+	}()
 }
