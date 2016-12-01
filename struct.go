@@ -5,8 +5,8 @@ import (
 	"reflect"
 )
 
-// CreateTables will register the struct in the database
-func CreateTables(ref reflect.Type) error {
+// createTables will register the struct in the database
+func createTables(ref reflect.Type) error {
 	var t, ok = tables[ref]
 	if !ok {
 		return errors.New("[dbmdl] Type not in tables map: " + ref.Name())
@@ -27,8 +27,10 @@ func CreateTables(ref reflect.Type) error {
 	}
 
 	// Query
-	q := t.dialect.CreateTable(t.name, fields...)
-	query(q)
+	q := t.dialect.CreateTable(t.name, fields)
+	query(nil, q)
 
 	return nil
 }
+
+//
