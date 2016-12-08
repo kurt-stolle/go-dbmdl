@@ -72,20 +72,18 @@ func PopulateStruct(dlct string, t string, s interface{}, limit uint64, whereCla
 	var fields []string
 
 	for i := 0; i < ref.NumField(); i++ {
-		field := ref.Field(i)              // Get the field at index i
-		dataType := field.Tag.Get("dbmdl") // Find the datatype from the dbmdl tag
-
-		if dataType == "" {
+		field := ref.Field(i) // Get the field at index i
+		if field.Tag.Get("dbmdl") == "" {
 			continue
 		}
 
-		fields = append(fields, field.Name+" "+dataType)
+		fields = append(fields, field.Name)
 	}
 
 	// Query
 	q := d.FetchFields(t, limit, whereClauses, fields)
 	c := make(chan *sql.Rows)
-	query(c, q)
+	query(c, q...)
 
 	// Wait for the channel to return rows
 	r := <-c
