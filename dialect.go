@@ -4,9 +4,10 @@ import "database/sql"
 
 // Dialect is a struct that stores the querying methods
 type Dialect struct {
-	CreateTable   func(tableName string, fields []string) []interface{}
-	SetPrimaryKey func(tableName string, fields []string) []interface{}
-	FetchFields   func(tableName string, limit uint64, whereClauses map[string]interface{}, fields []string) []interface{}
+	CreateTable      func(tableName string, fields []string) []interface{}
+	SetPrimaryKey    func(tableName string, fields []string) []interface{}
+	SetDefaultValues func(n string, v map[string]string) []interface{}
+	FetchFields      func(tableName string, limit uint64, whereClauses map[string]interface{}, fields []string) []interface{}
 }
 
 // Query handles queries

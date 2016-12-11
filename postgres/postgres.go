@@ -46,6 +46,16 @@ DO $$
 	END;
 $$;`}
 	}
+	d.SetDefaultValues = func(n string, v map[string]string) []interface{} {
+		var q []string
+		for c, d := range v {
+			q = append(q, `
+				UPDATE `+n+` SET `+c+`=`+d+` WHERE `+c+`=NULL;
+				ALTER TABLE ONLY `+n+` ALTER COLUMN `+c+` SET DEFAULT `+d+`;`)
+		}
+
+		return []interface{}{strings.Join(q, "\n")}
+	}
 	d.FetchFields = func(n string, limit uint64, w map[string]interface{}, f []string) []interface{} {
 		var args []interface{}
 		args[0] = "" // Save this spot for later

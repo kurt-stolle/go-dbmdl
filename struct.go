@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 	"reflect"
+	"regexp"
 )
 
 // createTables will register the struct in the database
@@ -17,6 +18,7 @@ func createTables(ref reflect.Type) error {
 	// Build fields list
 	var fields []string
 	var primaryKeys []string
+	var defaults = make(map[string]string)
 
 	for i := 0; i < ref.NumField(); i++ {
 		field := ref.Field(i)          // Get the field at index i
@@ -28,10 +30,13 @@ func createTables(ref reflect.Type) error {
 
 		fields = append(fields, field.Name+" "+tag[0])
 
+		regDefault := regexp.MustCompile("default .+")
+
 		for _, v := range tag {
-			switch v {
-			case "primary key":
+			if v == "primary key" {
 				primaryKeys = append(primaryKeys, field.Name)
+			} else if i := regDefault.FindStringIndex(v); i != nil {
+				defaults[field.Name] = v[(i[0] + 8):] // Move 8 spaces to the right from 'default ' to capture the type
 			}
 		}
 	}
@@ -54,6 +59,11 @@ func createTables(ref reflect.Type) error {
 	q = t.dialect.SetPrimaryKey(t.name, primaryKeys) // Build primary key query
 	query(c2, q...)                                  // Execute query
 	<-c2                                             // Wait for query to finish
+
+	c3 := make(chan *sql.Rows)                       // Make another channel
+	q = t.dialect.SetDefaultValues(t.name, defaults) // Build primary key query
+	query(c3, q...)                                  // Execute query
+	<-c3                                             // Wait for query to finish
 
 	return nil
 }
