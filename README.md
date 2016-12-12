@@ -68,7 +68,7 @@ Optional fields are separated from the primary field and other optional field by
 The following is an example of an elaborate `dbmdl` tag:
 ```
 type Model struct {
-  Index     int     `serial, primary key, not null`
+  Index     int     `dbmdl:"serial, primary key, not null"`
   ValueOne  string  `dbmdl:"varchar(50), primary key, not null"`
   ValueTwo  string  `dbmdl:"varchar(90), primary key, not null, default 'Something'"`
 }
