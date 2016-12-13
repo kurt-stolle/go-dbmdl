@@ -1,3 +1,5 @@
+package dbmdl
+
 import "database/sql"
 
 // Query is the structure used to handle queries by an external system
@@ -15,7 +17,7 @@ func init() {
 }
 
 // QueryChannel returns a channel for executing in own implementation
-// Example:
+// Example
 //  for {
 //     q := <- dbmdl.QueryChannel();
 //     sqlDB.Query(q);
