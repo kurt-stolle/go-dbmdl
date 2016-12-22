@@ -7,7 +7,8 @@ type Dialect struct {
 	CreateTable      func(tableName string, fields []string) []interface{}
 	SetPrimaryKey    func(tableName string, fields []string) []interface{}
 	SetDefaultValues func(n string, v map[string]string) []interface{}
-	FetchFields      func(tableName string, limit uint64, whereClauses map[string]interface{}, fields []string) []interface{}
+	FetchFields      func(tableName string, p *Pagination, w *WhereClause, f []string) []interface{}
+	GetPlaceholder   func(i int) string
 }
 
 // RegisterDialect will add a dialect so that it can be used later

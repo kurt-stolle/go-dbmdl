@@ -2,7 +2,6 @@ package postgres
 
 import (
 	"bytes"
-	"fmt"
 	"strconv"
 	"strings"
 
@@ -56,33 +55,26 @@ $$;`}
 
 		return []interface{}{strings.Join(q, "\n")}
 	}
-	d.FetchFields = func(n string, limit uint64, w map[string]interface{}, f []string) []interface{} {
+	d.FetchFields = func(n string, p *dbmdl.Pagination, w *dbmdl.WhereClause, f []string) []interface{} {
 		var args []interface{}
 		args[0] = "" // Save this spot for later
-
-		fmt.Println(f)
 
 		var query bytes.Buffer
 		query.WriteString(`SELECT ` + strings.Join(f, ", ") + ` FROM ` + n)
 
-		var whereClauses []string
-		for key, val := range w {
-			whereClauses = append(whereClauses, key+`=$`+strconv.Itoa(len(whereClauses)+1))
-			args = append(args, val)
+		if w != nil {
+			query.WriteString(` ` + w.String() + ` `)
 		}
-
-		if len(whereClauses) > 0 {
-			query.WriteString(` WHERE `)
-			query.WriteString(strings.Join(whereClauses, " AND "))
-		}
-
-		if limit > 0 {
-			query.WriteString(` LIMIT ` + strconv.FormatUint(limit, 10))
+		if p != nil {
+			query.WriteString(` ` + p.String() + ` `)
 		}
 
 		args[0] = query.String() // Put query string in reserved spot
 
 		return args
+	}
+	d.GetPlaceholder = func(i int) string {
+		return "$" + strconv.Itoa(i)
 	}
 
 	// Register for later use in other appliances
