@@ -12,9 +12,9 @@ type Result struct {
 	Pagination *Pagination
 }
 
-// PopulateStruct loads data from a database a populates the struct
+// Fetch loads data from a database a populates the struct
 // sRef is a pointer to the struct, only used for getting the reflection type
-func PopulateStruct(dlct string, t string, sRef interface{}, FWP ...interface{}) (*Result, error) {
+func Fetch(dlct string, t string, sRef interface{}, FWP ...interface{}) (*Result, error) {
 	d, ok := dialects[dlct]
 	if !ok {
 		return nil, errors.New("[dbmdl] Failed to populate struct; dialect " + dlct + " unknown!")

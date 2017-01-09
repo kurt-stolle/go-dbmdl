@@ -15,6 +15,14 @@ type WhereClause struct {
 	Format  string
 }
 
+// NewWhereClause returns a new where clause from a dialect
+func NewWhereClause(dialect string) *WhereClause {
+	c := new(WhereClause)
+	c.Dialect = dialects[dialect]
+
+	return c
+}
+
 // String returns a WHERE clause string
 func (w *WhereClause) String() string {
 	if w.Format != "" {
