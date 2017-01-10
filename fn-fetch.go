@@ -51,6 +51,8 @@ func Fetch(dlct string, t string, sRef interface{}, FWP ...interface{}) (*Result
 		where = &WhereClause{}
 	}
 
+	where.Dialect = d
+
 	if len(fields) < 1 { // If we did not supply and fields to be selected, select all fields
 		for i := 0; i < ref.NumField(); i++ {
 			field := ref.Field(i) // Get the field at index i
