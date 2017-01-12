@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"reflect"
+	"unsafe"
 )
 
 // Result holds an array of structs and a pagination object
@@ -109,7 +110,10 @@ func Fetch(dlct string, t string, sRef interface{}, FWP ...interface{}) (*Result
 			s.FieldByName(fields[i]).Set(reflect.ValueOf(v)) // Set values in our new struct
 		}
 
-		res.Data = append(res.Data, s.Interface()) // Append the interface
+		ptr := reflect.New(reflect.PtrTo(ref))
+		ptr.SetPointer(unsafe.Pointer(s.UnsafeAddr()))
+
+		res.Data = append(res.Data, ptr) // Append the interface
 	}
 
 	return res, nil
