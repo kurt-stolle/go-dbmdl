@@ -62,7 +62,7 @@ func Fetch(dlct string, t string, sRef interface{}, FWP ...interface{}) (*Result
 			}
 
 			for _, tag := range getTagParameters(field) {
-				if tag == "omit" {
+				if tag == omit {
 					continue
 				}
 			}
@@ -76,7 +76,7 @@ func Fetch(dlct string, t string, sRef interface{}, FWP ...interface{}) (*Result
 	}
 
 	// Query
-	q := d.FetchFields(t, pag, where, fields)
+	q := d.FetchFields(t, fields, pag, where)
 	c := make(chan *sql.Rows)
 	query(c, q...)
 

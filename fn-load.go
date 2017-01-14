@@ -34,7 +34,7 @@ func Load(dlct string, table string, target interface{}, where *WhereClause) err
 		}
 
 		for _, tag := range getTagParameters(field) {
-			if tag == "omit" {
+			if tag == omit {
 				continue
 			}
 		}
@@ -43,7 +43,7 @@ func Load(dlct string, table string, target interface{}, where *WhereClause) err
 	}
 
 	// Query using the same shit as Fetch Fields
-	q := d.FetchFields(table, &Pagination{1, 1}, where, fields)
+	q := d.FetchFields(table, fields, &Pagination{1, 1}, where)
 	c := make(chan *sql.Rows)
 	query(c, q...)
 

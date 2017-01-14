@@ -11,8 +11,8 @@ import (
 func init() {
 	// Set-up the dialeect
 	d := new(dbmdl.Dialect)
+
 	d.CreateTable = func(n string, f []string) []interface{} {
-		var args []interface{}
 		var query bytes.Buffer
 		query.WriteString(`CREATE TABLE IF NOT EXISTS ` + n + ` ();`)
 
@@ -29,10 +29,9 @@ DO $$
 $$;`)
 		}
 
-		// Build arg list
-		args = append(args, query.String())
-		return args
+		return []interface{}{query.String()}
 	}
+
 	d.SetPrimaryKey = func(n string, f []string) []interface{} {
 		return []interface{}{`
 DO $$
@@ -45,6 +44,7 @@ DO $$
 	END;
 $$;`}
 	}
+
 	d.SetDefaultValues = func(n string, v map[string]string) []interface{} {
 		var q []string
 		for c, d := range v {
@@ -55,12 +55,14 @@ $$;`}
 
 		return []interface{}{strings.Join(q, "\n")}
 	}
-	d.FetchFields = func(n string, p *dbmdl.Pagination, w *dbmdl.WhereClause, f []string) []interface{} {
-		var args []interface{}
-		args[0] = "" // Save this spot for later
 
+	d.FetchFields = func(tableName string, fields []string, p *dbmdl.Pagination, w *dbmdl.WhereClause) []interface{} {
 		var query bytes.Buffer
-		query.WriteString(`SELECT ` + strings.Join(f, ", ") + ` FROM ` + n)
+
+		query.WriteString(`SELECT `)
+		query.WriteString(strings.Join(fields, ", "))
+		query.WriteString(` FROM `)
+		query.WriteString(tableName)
 
 		if w != nil {
 			query.WriteString(` ` + w.String() + ` `)
@@ -69,10 +71,83 @@ $$;`}
 			query.WriteString(` ` + p.String() + ` `)
 		}
 
-		args[0] = query.String() // Put query string in reserved spot
+		var args []interface{}
+		args = append(args, query.String()) // Replace at index 0
+		args = append(args, w.Values...)
 
 		return args
 	}
+
+	d.Insert = func(tableName string, fieldsValues map[string]interface{}) []interface{} {
+		var args = []interface{}{";//"}
+		var query bytes.Buffer
+
+		query.WriteString(`INSERT INTO `)
+		query.WriteString(tableName)
+		query.WriteString(` (`)
+
+		var i = 0
+		for f, _ := range fieldsValues {
+			i++
+
+			query.WriteString(f)
+
+			if i < len(fieldsValues) {
+				query.WriteString(",")
+			}
+		}
+
+		query.WriteString(`) VALUES (`)
+
+		i = 0
+		for _, v := range fieldsValues {
+			i++
+
+			query.WriteString(`$`)
+			query.WriteString(strconv.Itoa(i))
+
+			if i < len(fieldsValues) {
+				query.WriteString(",")
+			}
+
+			args = append(args, v)
+		}
+
+		query.WriteString(`)`)
+
+		args[0] = query.String() // Replace at index 0
+
+		return args
+	}
+
+	d.Update = func(tableName string, fieldsValues map[string]interface{}, w *dbmdl.WhereClause) []interface{} {
+		var args = []interface{}{";//"}
+		var query bytes.Buffer
+
+		args = append(args, w.Values...)
+
+		query.WriteString(`UPDATE `)
+		query.WriteString(tableName)
+		query.WriteString(` SET `)
+
+		var i = len(w.Values)
+		for f, v := range fieldsValues {
+			i++
+
+			query.WriteString(f)
+			query.WriteString(`=$`)
+			query.WriteString(strconv.Itoa(i))
+
+			args = append(args, v)
+		}
+
+		query.WriteString(w.String())
+
+		args[0] = query.String()
+
+		return args
+	}
+
 	d.GetPlaceholder = func(i int) string {
 		return "$" + strconv.Itoa(i)
 	}
