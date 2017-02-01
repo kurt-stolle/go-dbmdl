@@ -50,20 +50,23 @@ func createTables(ref reflect.Type) error {
 	var q []interface{}
 
 	// Channel magic
-	c1 := make(chan *sql.Rows)                // Create a new channel;
+	c1 := make(chan *sql.Rows) // Create a new channel;
+	defer close(c1)
 	q = t.dialect.CreateTable(t.name, fields) //  Make the table query
 	query(c1, q...)                           // Perform query
-	<-c1                                      // Wait for query to finish
+	(<-c1).Close()                            // Wait for query to finish
 
-	c2 := make(chan *sql.Rows)                       // Make another channel
+	c2 := make(chan *sql.Rows) // Make another channel
+	defer close(c2)
 	q = t.dialect.SetPrimaryKey(t.name, primaryKeys) // Build primary key query
 	query(c2, q...)                                  // Execute query
-	<-c2                                             // Wait for query to finish
+	(<-c2).Close()                                   // Wait for query to finish
 
-	c3 := make(chan *sql.Rows)                       // Make another channel
-	q = t.dialect.SetDefaultValues(t.name, defaults) // Build primary key query
+	c3 := make(chan *sql.Rows) // Make another channel
+	defer close(c3)
+	q = t.dialect.SetDefaultValues(t.name, defaults) // Build default values query
 	query(c3, q...)                                  // Execute query
-	<-c3                                             // Wait for query to finish
+	(<-c3).Close()                                   // Wait for query to finish
 
 	return nil
 }

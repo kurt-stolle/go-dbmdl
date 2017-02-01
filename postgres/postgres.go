@@ -73,7 +73,10 @@ $$;`}
 
 		var args []interface{}
 		args = append(args, query.String()) // Replace at index 0
-		args = append(args, w.Values...)
+
+		if w != nil {
+			args = append(args, w.Values...)
+		}
 
 		return args
 	}
@@ -86,33 +89,29 @@ $$;`}
 		query.WriteString(tableName)
 		query.WriteString(` (`)
 
+		var bufInsert string
+		var bufValues string
+
 		var i = 0
-		for f, _ := range fieldsValues {
+		for f, v := range fieldsValues {
 			i++
 
-			query.WriteString(f)
+			bufInsert += f
+
+			bufValues += "$"
+			bufValues += strconv.Itoa(i)
 
 			if i < len(fieldsValues) {
-				query.WriteString(",")
-			}
-		}
-
-		query.WriteString(`) VALUES (`)
-
-		i = 0
-		for _, v := range fieldsValues {
-			i++
-
-			query.WriteString(`$`)
-			query.WriteString(strconv.Itoa(i))
-
-			if i < len(fieldsValues) {
-				query.WriteString(",")
+				bufInsert += ","
+				bufValues += ","
 			}
 
 			args = append(args, v)
 		}
 
+		query.WriteString(bufInsert)
+		query.WriteString(`) VALUES (`)
+		query.WriteString(bufValues)
 		query.WriteString(`)`)
 
 		args[0] = query.String() // Replace at index 0

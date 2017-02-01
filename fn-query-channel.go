@@ -28,15 +28,13 @@ func QueryChannel() chan *Query {
 
 // query is our internal query function
 func query(res chan *sql.Rows, args ...interface{}) {
-	go func() {
-		q := new(Query)
-		q.String = (args[0]).(string)
-		q.Arguments = args[1:]
+	q := new(Query)
+	q.String = (args[0]).(string)
+	q.Arguments = args[1:]
 
-		if res != nil {
-			q.Result = res
-		}
+	if res != nil {
+		q.Result = res
+	}
 
-		chOut <- q
-	}()
+	chOut <- q
 }

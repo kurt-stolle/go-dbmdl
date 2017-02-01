@@ -10,7 +10,7 @@ type Pagination struct {
 
 // String returns a LIMIT and OFFSET clause
 func (p *Pagination) String() string {
-	return `LIMIT ` + strconv.FormatUint(uint64(p.AmountPerPage), 10) + ` OFFSET ` + strconv.FormatUint(uint64(p.Page*p.AmountPerPage), 10)
+	return `LIMIT ` + strconv.FormatUint(uint64(p.AmountPerPage), 10) + ` OFFSET ` + strconv.FormatUint(uint64((p.Page-1)*p.AmountPerPage), 10)
 }
 
 // NewPagination returns a Pagination pointer

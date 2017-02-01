@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"errors"
 	"reflect"
-	"unsafe"
 )
 
 // Result holds an array of structs and a pagination object
@@ -48,11 +47,9 @@ func Fetch(dlct string, t string, sRef interface{}, FWP ...interface{}) (*Result
 		pag = &Pagination{1, 1}
 	}
 
-	if where == nil {
-		where = &WhereClause{}
+	if where != nil {
+		where.Dialect = d
 	}
-
-	where.Dialect = d
 
 	if len(fields) < 1 { // If we did not supply and fields to be selected, select all fields
 		for i := 0; i < ref.NumField(); i++ {
@@ -77,6 +74,7 @@ func Fetch(dlct string, t string, sRef interface{}, FWP ...interface{}) (*Result
 
 	// Query
 	q := d.FetchFields(t, fields, pag, where)
+
 	c := make(chan *sql.Rows)
 	query(c, q...)
 
@@ -84,36 +82,37 @@ func Fetch(dlct string, t string, sRef interface{}, FWP ...interface{}) (*Result
 	var res = &Result{}
 	res.Pagination = pag
 
+	// Create dummy variables that we can scan the results of the query into
+	var dummyVariables []reflect.Value // Slice to hold the values scanned from the *sql.Rows result
+	var dummyVariablesAddresses []interface{}
+	for _, name := range fields {
+		f, found := ref.FieldByName(name)
+		if !found {
+			return nil, errors.New("Field not found in array: " + name)
+		}
+
+		var nwtyp = reflect.New(f.Type)
+
+		dummyVariables = append(dummyVariables, nwtyp.Elem()) // Create a pointer to type at f
+		dummyVariablesAddresses = append(dummyVariablesAddresses, nwtyp.Interface())
+	}
+
 	// Wait for the channel to return rows
 	r := <-c
+	defer r.Close()
+	defer close(c)
+
+	// Iterate over rows found
 	for r.Next() {
-		var s = reflect.New(ref) // Create a new struct
-		var a []interface{}      // Slice to hold the values scanned
+		var s = reflect.New(ref) // Create a new pointer to an empty struct of type ref
 
-		for _, name := range fields {
-			f, found := ref.FieldByName(name)
-			if !found {
-				return nil, errors.New("Field not found in array: " + name)
-			}
-			a = append(a, reflect.New(f.Type).Interface()) // Populate a by getting the type of each field and getting an infc
+		r.Scan(dummyVariablesAddresses...) // Scan into the slice we populated with dummy variables earlier
+
+		for i, v := range dummyVariables {
+			s.Elem().FieldByName(fields[i]).Set(v) // Set values in our new struct
 		}
 
-		var aAddresses []interface{} // Make an array for the addresses of the values
-
-		for i, aval := range a { // Populate the addresses array
-			aAddresses[i] = &aval
-		}
-
-		r.Scan(aAddresses...) // Scan into a by pointer reference
-
-		for i, v := range a {
-			s.FieldByName(fields[i]).Set(reflect.ValueOf(v)) // Set values in our new struct
-		}
-
-		ptr := reflect.New(reflect.PtrTo(ref))
-		ptr.SetPointer(unsafe.Pointer(s.UnsafeAddr()))
-
-		res.Data = append(res.Data, ptr) // Append the interface
+		res.Data = append(res.Data, s.Interface()) // Append the interface value of the pointer to the previously created ref type.
 	}
 
 	return res, nil

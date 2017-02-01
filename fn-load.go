@@ -49,6 +49,8 @@ func Load(dlct string, table string, target interface{}, where *WhereClause) err
 
 	// Wait for query to return a result and start scanning
 	r := <-c
+	defer close(c)
+	defer r.Close()
 	for r.Next() {
 		var a []interface{} // Slice to hold the values scanned
 
