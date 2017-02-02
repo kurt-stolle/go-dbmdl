@@ -2,6 +2,7 @@ package dbmdl
 
 import (
 	"bytes"
+	"errors"
 	"regexp"
 	"strconv"
 	"strings"
@@ -11,8 +12,21 @@ import (
 type WhereClause struct {
 	Values  []interface{}
 	Clauses []string
-	Dialect *Dialect
+	Dialect *Dialect // Dialect usually needn't be set by the programmer, it is implicitly found by the relevant dbmdl functions
 	Format  string
+}
+
+// NewWhereClause returns a where clause with a dialect
+func NewWhereClause(dlct string) (*WhereClause, error) {
+	d, ok := dialects[dlct]
+	if !ok {
+		return nil, errors.New("Invalid Dialect")
+	}
+
+	w := new(WhereClause)
+	w.Dialect = d
+
+	return w, nil
 }
 
 // String returns a WHERE clause string
@@ -21,12 +35,11 @@ func (w *WhereClause) String() string {
 		return w.FormattedString(w.Format)
 	}
 
-	str := strings.Join(w.Clauses, " AND ")
-
-	if str == "" {
-		return ""
+	if len(w.Clauses) < 1 {
+		return ``
 	}
-	return " WHERE " + str + " "
+
+	return `WHERE ` + strings.Join(w.Clauses, " AND ")
 }
 
 // FormattedString strings a WHERE clause string
@@ -64,6 +77,8 @@ func (w *WhereClause) AddClause(clause string) (clauseIndex int) {
 }
 
 // AddValuedClause adds a clause with a value
+// Use GetPlaceholder to get a placeholder. This is NOT automatically added to the clause!
+// Example: w.AddValuedClause("ID="+w.GetPlaceholder(0), "2015");
 func (w *WhereClause) AddValuedClause(clause string, value interface{}) (clauseIndex int, valueIndex int) {
 	w.Clauses = append(w.Clauses, clause)
 	w.Values = append(w.Values, value)

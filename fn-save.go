@@ -7,7 +7,11 @@ import (
 )
 
 // Save will add to the database or update an existing resource if a nonzero WHERE is provided
-func Save(dlct, t string, target interface{}, where *WhereClause, fields ...string) error {
+func Save(t string, target interface{}, where *WhereClause, fields ...string) error {
+	// Check dialect
+	if where.Dialect == nil {
+		return errors.New("Invalid Dialect")
+	}
 
 	// Set fields is not given already
 	var ref = reflect.TypeOf(target)
@@ -43,24 +47,17 @@ func Save(dlct, t string, target interface{}, where *WhereClause, fields ...stri
 		fieldsValues[f] = val.FieldByName(f).Interface()
 	}
 
-	// Handle dialects
-	d, ok := dialects[dlct]
-	if !ok {
-		return errors.New("[dbmdl] Dialect " + dlct + " unknown")
-	}
-
 	// Create a channel for the reply
 	res := make(chan *sql.Rows)
 	defer close(res)
 
 	// Handle query
 	if len(where.Clauses) < 1 { // If the where clause is empty, INSERT:
-		q := d.Insert(t, fieldsValues) // Build query
-		query(res, q...)               // Query, no return channel
+		q := where.Dialect.Insert(t, fieldsValues) // Build query
+		query(res, q...)                           // Query, no return channel
 	} else { // If the where clause is not empty, UPDATE:
-		where.Dialect = d                     // Set the dialect of the WhereClause
-		q := d.Update(t, fieldsValues, where) // Build query
-		query(res, q...)                      // Query, no return channel
+		q := where.Dialect.Update(t, fieldsValues, where) // Build query
+		query(res, q...)                                  // Query, no return channel
 	}
 
 	// Wait for response and close channel

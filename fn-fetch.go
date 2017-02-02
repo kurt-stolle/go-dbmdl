@@ -15,17 +15,25 @@ type Result struct {
 // Fetch loads data from a database a populates the struct
 // sRef is a pointer to the struct, only used for getting the reflection type
 func Fetch(dlct string, t string, sRef interface{}, FWP ...interface{}) (*Result, error) {
+	// Check whether the dialect exists
 	d, ok := dialects[dlct]
 	if !ok {
 		return nil, errors.New("[dbmdl] Failed to populate struct; dialect " + dlct + " unknown!")
 	}
 
-	ref := reflect.TypeOf(sRef).Elem()
+	// Set the targetTypeerence, but check whether it's a pointer first
+	targetType := reflect.TypeOf(sRef)
+	if targetType.Kind() != reflect.Ptr {
+		return nil, errors.New("[dbmdl] target passed is not a pointer")
+	}
+	targetType = targetType.Elem()
 
-	if _, exists := tables[ref]; !exists {
-		return nil, errors.New("[dbmdl] Type " + ref.Name() + " is not a known type!")
+	// Check whether we know of this type's existance
+	if _, exists := tables[targetType]; !exists {
+		return nil, errors.New("[dbmdl] Type " + targetType.Name() + " is not a known type!")
 	}
 
+	// Set our dynamic options
 	var fields []string
 	var where *WhereClause
 	var pag *Pagination
@@ -43,6 +51,7 @@ func Fetch(dlct string, t string, sRef interface{}, FWP ...interface{}) (*Result
 		}
 	}
 
+	// Fallbacks
 	if pag == nil {
 		pag = &Pagination{1, 1}
 	}
@@ -51,9 +60,10 @@ func Fetch(dlct string, t string, sRef interface{}, FWP ...interface{}) (*Result
 		where.Dialect = d
 	}
 
-	if len(fields) < 1 { // If we did not supply and fields to be selected, select all fields
-		for i := 0; i < ref.NumField(); i++ {
-			field := ref.Field(i) // Get the field at index i
+	// If we did not supply and fields to be selected, select all fields
+	if len(fields) < 1 {
+		for i := 0; i < targetType.NumField(); i++ {
+			field := targetType.Field(i) // Get the field at index i
 			if field.Tag.Get("dbmdl") == "" {
 				continue
 			}
@@ -72,7 +82,7 @@ func Fetch(dlct string, t string, sRef interface{}, FWP ...interface{}) (*Result
 		return nil, errors.New("We have nothing to select because all fields are ommited by dbmdl")
 	}
 
-	// Query
+	// Build and execute the Query
 	q := d.FetchFields(t, fields, pag, where)
 
 	c := make(chan *sql.Rows)
@@ -86,15 +96,15 @@ func Fetch(dlct string, t string, sRef interface{}, FWP ...interface{}) (*Result
 	var dummyVariables []reflect.Value // Slice to hold the values scanned from the *sql.Rows result
 	var dummyVariablesAddresses []interface{}
 	for _, name := range fields {
-		f, found := ref.FieldByName(name)
+		f, found := targetType.FieldByName(name)
 		if !found {
 			return nil, errors.New("Field not found in array: " + name)
 		}
 
-		var nwtyp = reflect.New(f.Type)
+		var nwtyp = reflect.New(f.Type) // This returns a reflect value of a pointer to the type at f
 
-		dummyVariables = append(dummyVariables, nwtyp.Elem()) // Create a pointer to type at f
-		dummyVariablesAddresses = append(dummyVariablesAddresses, nwtyp.Interface())
+		dummyVariables = append(dummyVariables, nwtyp.Elem())                        // Store our newly made Value
+		dummyVariablesAddresses = append(dummyVariablesAddresses, nwtyp.Interface()) // Store the address as well, so that we can supply this to the Scan function later down the road
 	}
 
 	// Wait for the channel to return rows
@@ -104,7 +114,7 @@ func Fetch(dlct string, t string, sRef interface{}, FWP ...interface{}) (*Result
 
 	// Iterate over rows found
 	for r.Next() {
-		var s = reflect.New(ref) // Create a new pointer to an empty struct of type ref
+		var s = reflect.New(targetType) // Create a new pointer to an empty struct of type targetType
 
 		r.Scan(dummyVariablesAddresses...) // Scan into the slice we populated with dummy variables earlier
 
@@ -112,7 +122,7 @@ func Fetch(dlct string, t string, sRef interface{}, FWP ...interface{}) (*Result
 			s.Elem().FieldByName(fields[i]).Set(v) // Set values in our new struct
 		}
 
-		res.Data = append(res.Data, s.Interface()) // Append the interface value of the pointer to the previously created ref type.
+		res.Data = append(res.Data, s.Interface()) // Append the interface value of the pointer to the previously created targetType type.
 	}
 
 	return res, nil
