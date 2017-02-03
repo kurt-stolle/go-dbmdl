@@ -2,7 +2,6 @@ package dbmdl
 
 import (
 	"bytes"
-	"errors"
 	"regexp"
 	"strconv"
 	"strings"
@@ -17,16 +16,16 @@ type WhereClause struct {
 }
 
 // NewWhereClause returns a where clause with a dialect
-func NewWhereClause(dlct string) (*WhereClause, error) {
+func NewWhereClause(dlct string) *WhereClause {
 	d, ok := dialects[dlct]
 	if !ok {
-		return nil, errors.New("Invalid Dialect")
+		panic("Invalid dialect: " + dlct)
 	}
 
 	w := new(WhereClause)
 	w.Dialect = d
 
-	return w, nil
+	return w
 }
 
 // String returns a WHERE clause string

@@ -14,11 +14,10 @@ type Result struct {
 
 // Fetch loads data from a database a populates the struct
 // sRef is a pointer to the struct, only used for getting the reflection type
-func Fetch(dlct string, t string, sRef interface{}, FWP ...interface{}) (*Result, error) {
+func Fetch(t string, sRef interface{}, where *WhereClause, pag *Pagination, fields ...string) (*Result, error) {
 	// Check whether the dialect exists
-	d, ok := dialects[dlct]
-	if !ok {
-		return nil, errors.New("[dbmdl] Failed to populate struct; dialect " + dlct + " unknown!")
+	if where.Dialect == nil {
+		return nil, errors.New("Invalid dialect")
 	}
 
 	// Set the targetTypeerence, but check whether it's a pointer first
@@ -33,31 +32,9 @@ func Fetch(dlct string, t string, sRef interface{}, FWP ...interface{}) (*Result
 		return nil, errors.New("[dbmdl] Type " + targetType.Name() + " is not a known type!")
 	}
 
-	// Set our dynamic options
-	var fields []string
-	var where *WhereClause
-	var pag *Pagination
-
-	for i := 0; i < len(FWP); i++ {
-		switch v := FWP[i].(type) {
-		case []string:
-			fields = v
-		case *Pagination:
-			pag = v
-		case *WhereClause:
-			where = v
-		default:
-			panic("Interface type not supported")
-		}
-	}
-
 	// Fallbacks
 	if pag == nil {
 		pag = &Pagination{1, 1}
-	}
-
-	if where != nil {
-		where.Dialect = d
 	}
 
 	// If we did not supply and fields to be selected, select all fields
@@ -83,7 +60,7 @@ func Fetch(dlct string, t string, sRef interface{}, FWP ...interface{}) (*Result
 	}
 
 	// Build and execute the Query
-	q := d.FetchFields(t, fields, pag, where)
+	q := where.Dialect.FetchFields(t, fields, pag, where)
 
 	c := make(chan *sql.Rows)
 	query(c, q...)
