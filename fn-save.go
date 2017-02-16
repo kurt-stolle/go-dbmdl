@@ -2,7 +2,6 @@ package dbmdl
 
 import (
 	"database/sql"
-	"log"
 	"reflect"
 )
 
@@ -62,7 +61,7 @@ func Save(db *sql.DB, t string, target interface{}, where *WhereClause, fields .
 
 	// Wait for response and close channel
 	if _, err := db.Exec(q, a...); err != nil {
-		log.Panic(err)
+		return err
 	}
 
 	return nil
