@@ -15,7 +15,7 @@ type Dialect struct {
 
 // RegisterDialect will add a dialect so that it can be used later
 func RegisterDialect(d string, strct *Dialect) error {
-	log.Println("[dbmdl] Registered dialect: " + d)
+	log.Println("Registered dialect: " + d)
 
 	dialects[d] = strct
 

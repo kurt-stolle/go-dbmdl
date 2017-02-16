@@ -2,7 +2,6 @@ package dbmdl
 
 import (
 	"database/sql"
-	"errors"
 	"log"
 	"reflect"
 )
@@ -11,7 +10,7 @@ import (
 func Save(db *sql.DB, t string, target interface{}, where *WhereClause, fields ...string) error {
 	// Check dialect
 	if where.Dialect == nil {
-		return errors.New("Invalid Dialect")
+		return ErrNoDialect
 	}
 
 	// Set fields is not given already

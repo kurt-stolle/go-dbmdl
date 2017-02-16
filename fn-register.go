@@ -11,18 +11,18 @@ import (
 func RegisterStruct(db *sql.DB, dlct string, t string, s interface{}) error {
 	d, ok := dialects[dlct]
 	if !ok {
-		return errors.New("[dbmdl] Failed to register struct; dialect " + dlct + " unknown!")
+		return ErrNoDialect
 	}
 
 	refType := reflect.TypeOf(s).Elem()
 
 	if _, exists := tables[refType]; exists {
-		return errors.New("[dbmdl] Type " + refType.Name() + " is already registered!")
+		return errors.New("dbmdl: Type " + refType.Name() + " is already registered!")
 	}
 
 	tables[refType] = &table{dialect: d, name: t}
 
-	log.Println("[dbmdl] Registered struct: " + refType.Name())
+	log.Println("Registered struct: " + refType.Name())
 
 	// Return possible errors from table creation
 	return createTables(db, refType)

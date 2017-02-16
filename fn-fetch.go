@@ -19,19 +19,19 @@ type Result struct {
 func Fetch(db *sql.DB, t string, sRef interface{}, where *WhereClause, pag *Pagination, fields ...string) (*Result, error) {
 	// Check whether the dialect exists
 	if where.Dialect == nil {
-		return nil, errors.New("Invalid dialect")
+		return nil, ErrNoDialect
 	}
 
-	// Set the targetTypeerence, but check whether it's a pointer first
+	// Set the reference, but check whether it's a pointer first
 	targetType := reflect.TypeOf(sRef)
 	if targetType.Kind() != reflect.Ptr {
-		return nil, errors.New("[dbmdl] target passed is not a pointer")
+		return nil, ErrNoPointer
 	}
 	targetType = targetType.Elem()
 
 	// Check whether we know of this type's existance
 	if _, exists := tables[targetType]; !exists {
-		return nil, errors.New("[dbmdl] Type " + targetType.Name() + " is not a known type!")
+		return nil, ErrUnknownType
 	}
 
 	// Fallbacks
