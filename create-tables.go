@@ -9,7 +9,7 @@ import (
 )
 
 // createTables will register the struct in the database
-func createTables(ref reflect.Type) error {
+func createTables(db *sql.DB, ref reflect.Type) error {
 	var t, ok = tables[ref]
 	if !ok {
 		return errors.New("[dbmdl] Type not in tables map: " + ref.Name())
@@ -47,26 +47,22 @@ func createTables(ref reflect.Type) error {
 	}
 
 	// A query
-	var q []interface{}
+	var q string
 
-	// Channel magic
-	c1 := make(chan *sql.Rows) // Create a new channel;
-	defer close(c1)
 	q = t.dialect.CreateTable(t.name, fields) //  Make the table query
-	query(c1, q...)                           // Perform query
-	(<-c1).Close()                            // Wait for query to finish
+	if _, err := db.Exec(q); err != nil {
+		log.Panic(q)
+	}
 
-	c2 := make(chan *sql.Rows) // Make another channel
-	defer close(c2)
 	q = t.dialect.SetPrimaryKey(t.name, primaryKeys) // Build primary key query
-	query(c2, q...)                                  // Execute query
-	(<-c2).Close()                                   // Wait for query to finish
+	if _, err := db.Exec(q); err != nil {
+		log.Panic(q)
+	}
 
-	c3 := make(chan *sql.Rows) // Make another channel
-	defer close(c3)
 	q = t.dialect.SetDefaultValues(t.name, defaults) // Build default values query
-	query(c3, q...)                                  // Execute query
-	(<-c3).Close()                                   // Wait for query to finish
+	if _, err := db.Exec(q); err != nil {
+		log.Panic(q)
+	}
 
 	return nil
 }

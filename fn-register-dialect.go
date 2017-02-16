@@ -4,12 +4,12 @@ import "log"
 
 // Dialect is a struct that stores the querying methods
 type Dialect struct {
-	CreateTable      func(tableName string, fields []string) []interface{}
-	SetPrimaryKey    func(tableName string, fields []string) []interface{}
-	SetDefaultValues func(n string, v map[string]string) []interface{}
-	FetchFields      func(tableName string, fields []string, p *Pagination, w *WhereClause) []interface{}
-	Insert           func(tableName string, fieldsValues map[string]interface{}) []interface{}
-	Update           func(tableName string, fieldsValues map[string]interface{}, w *WhereClause) []interface{}
+	CreateTable      func(tableName string, fields []string) string
+	SetPrimaryKey    func(tableName string, fields []string) string
+	SetDefaultValues func(n string, v map[string]string) string
+	FetchFields      func(tableName string, fields []string, p *Pagination, w *WhereClause) (string, []interface{})
+	Insert           func(tableName string, fieldsValues map[string]interface{}) (string, []interface{})
+	Update           func(tableName string, fieldsValues map[string]interface{}, w *WhereClause) (string, []interface{})
 	GetPlaceholder   func(i int) string
 }
 

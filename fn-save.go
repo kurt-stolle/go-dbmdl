@@ -3,11 +3,12 @@ package dbmdl
 import (
 	"database/sql"
 	"errors"
+	"log"
 	"reflect"
 )
 
 // Save will add to the database or update an existing resource if a nonzero WHERE is provided
-func Save(t string, target interface{}, where *WhereClause, fields ...string) error {
+func Save(db *sql.DB, t string, target interface{}, where *WhereClause, fields ...string) error {
 	// Check dialect
 	if where.Dialect == nil {
 		return errors.New("Invalid Dialect")
@@ -52,17 +53,18 @@ func Save(t string, target interface{}, where *WhereClause, fields ...string) er
 	defer close(res)
 
 	// Handle query
+	var q string
+	var a []interface{}
 	if len(where.Clauses) < 1 { // If the where clause is empty, INSERT:
-		q := where.Dialect.Insert(t, fieldsValues) // Build query
-		query(res, q...)                           // Query, no return channel
+		q, a = where.Dialect.Insert(t, fieldsValues) // Build query
 	} else { // If the where clause is not empty, UPDATE:
-		q := where.Dialect.Update(t, fieldsValues, where) // Build query
-		query(res, q...)                                  // Query, no return channel
+		q, a = where.Dialect.Update(t, fieldsValues, where) // Build query
 	}
 
 	// Wait for response and close channel
-	r := <-res
-	defer r.Close()
+	if _, err := db.Exec(q, a...); err != nil {
+		log.Panic(err)
+	}
 
 	return nil
 }

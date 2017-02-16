@@ -3,17 +3,18 @@ package dbmdl
 import (
 	"database/sql"
 	"errors"
+	"log"
 	"reflect"
 )
 
 // Errors
 var (
-	ErrNotFound = errors.New("Target was not found")
+	ErrNotFound = sql.ErrNoRows
 )
 
 // Load will load a single struct from the database based on a where clause
 // Target is a pointer to a struct
-func Load(table string, target interface{}, where *WhereClause) error {
+func Load(db *sql.DB, table string, target interface{}, where *WhereClause) error {
 	// Check whether the dialect exists
 	if where.Dialect == nil {
 		return errors.New("WhereClause does not have a dialect set")
@@ -52,9 +53,14 @@ func Load(table string, target interface{}, where *WhereClause) error {
 	}
 
 	// Query using the same shit as Fetch Fields
-	q := where.Dialect.FetchFields(table, fields, &Pagination{1, 1}, where)
-	c := make(chan *sql.Rows)
-	query(c, q...)
+	q, a := where.Dialect.FetchFields(table, fields, &Pagination{1, 1}, where)
+	r, err := db.Query(q, a...)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return sql.ErrNoRows
+		}
+		log.Panic(err)
+	}
 
 	// Create dummy variables that we can scan the results of the query into
 	var addresses []interface{}
@@ -68,15 +74,7 @@ func Load(table string, target interface{}, where *WhereClause) error {
 	}
 
 	// Wait for query to return a result and start scanning
-	r := <-c
-	defer close(c)
-	defer r.Close()
+	r.Scan(addresses...) // Scan into a by pointer targetTypeerence
 
-	for r.Next() {
-		r.Scan(addresses...) // Scan into a by pointer targetTypeerence
-
-		return nil
-	}
-
-	return ErrNotFound
+	return nil
 }

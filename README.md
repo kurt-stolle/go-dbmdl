@@ -17,32 +17,7 @@ import (
 
 The "\_" character indicates that we only import this package for the side effects, i.e. the `init()` function which registers the dialect.
 
-### 2\. Setting up a channel for receiving queries built by dbmdl
-
-A channel needs to be created in order to receive the queries constructed by dbmdl and query them in the database.
-
-```
-go func() {
-		ch := dbmdl.QueryChannel()
-
-		for { // Infinite loop
-			var q = <-ch // Receive a query
-
-			rows, erra := conn.Query(q.String, q.Arguments...)
-			if erra != nil {
-				log.Panic("Failed to execute DBMDL query\nQuery: ", q.String, "\nPQ Error: ", err, "\nArguments: ", q.Arguments)
-			}
-
-			if q.Result != nil { // If the query indicates it wants to use the result for something, then pass the rows to the result channel
-				q.Result <- rows
-			} else { // If we don't use the result, then close the rows
-				rows.Close()
-			}
-		}
-	}()
-```
-
-### 3\. Registering the structs that can be used by dbmdl.
+### 2\. Registering the structs that can be used by dbmdl.
 
 To use a struct in dbmdl, it must be registered first.
 
@@ -51,7 +26,9 @@ type MyModel struct {
   Key      int    `dbmdl:"serial, primary key"`
   Value    string `dbmdl:"varchar(100)"`
 }
-if err := dbmdl.RegisterStruct("postgres", "project_models", (*MyModel)(nil)); err != nil { // (*MyModel)(nil) allows us to pass the type only so that we can use it in reflection
+
+var conn *sql.DB = postgres.Connect()
+if err := dbmdl.RegisterStruct(conn, "postgres", "project_models", (*MyModel)(nil)); err != nil { // (*MyModel)(nil) allows us to pass the type only so that we can use it in reflection
   panic(err);
 }
 ```
@@ -80,10 +57,6 @@ type Model struct {
   ValueTwo  string  `dbmdl:"varchar(90), primary key, not null, default 'Something'"`
 }
 ```
-
-## QueryChannel
-
-TODO: Document me
 
 ## RegisterDialect
 
