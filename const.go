@@ -1,3 +1,6 @@
 package dbmdl
 
-const omit = "omit"
+// Constants
+const (
+	omit = "omit"
+)
