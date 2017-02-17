@@ -4,11 +4,11 @@ A library for modelling databases according to a Go `struct`. Intentionally made
 
 ## Usage
 
-### 1\. Registering a dialect that queries will be constructed in
+### 1 Registering a dialect that queries will be constructed in
 
 You can choose the dialect for your queries by importing a package that defines one, or calling `dbmdl.RegisterDialect(name string, d *dbmdl.Dialect)`. In the following example, we register the Postgres dialect.
 
-```
+```go
 import (
   ...
   _ "github.com/kurt-stolle/go-dbmdl/postgres" //
@@ -17,11 +17,11 @@ import (
 
 The "\_" character indicates that we only import this package for the side effects, i.e. the `init()` function which registers the dialect.
 
-### 2\. Registering the structs that can be used by dbmdl.
+### 2 Registering the structs that can be used by dbmdl
 
 To use a struct in dbmdl, it must be registered first.
 
-```
+```go
 type MyModel struct {
   Key      int    `dbmdl:"serial, primary key"`
   Value    string `dbmdl:"varchar(100)"`
@@ -50,7 +50,7 @@ Optional fields are separated from the primary field and other optional field by
 
 The following is an example of an elaborate `dbmdl` tag:
 
-```
+```go
 type Model struct {
   Index     int     `dbmdl:"serial, primary key, not null"`
   ValueOne  string  `dbmdl:"varchar(50), primary key, not null"`
@@ -70,6 +70,10 @@ TODO: Document me
 
 TODO: Document me
 
+## Patch
+
+TODO: Document me
+
 ## Load
 
 TODO: Document me
@@ -77,7 +81,6 @@ TODO: Document me
 ## Fetch
 
 TODO: Document me
-
 
 ## Pagination
 
