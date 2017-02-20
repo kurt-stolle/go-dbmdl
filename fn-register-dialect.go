@@ -10,6 +10,7 @@ type Dialect struct {
 	FetchFields      func(tableName string, fields []string, p *Pagination, w *WhereClause) (string, []interface{})
 	Insert           func(tableName string, fieldsValues map[string]interface{}) (string, []interface{})
 	Update           func(tableName string, fieldsValues map[string]interface{}, w *WhereClause) (string, []interface{})
+	Count            func(tableName string, w *WhereClause) (string, []interface{})
 	GetPlaceholder   func(i int) string
 }
 

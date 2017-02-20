@@ -2,7 +2,6 @@ package dbmdl
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 	"reflect"
 )
@@ -48,11 +47,9 @@ func Load(db *sql.DB, table string, target interface{}, where *WhereClause) erro
 	}
 
 	// Query using the same shit as Fetch Fields
-	q, a := where.Dialect.FetchFields(table, fields, &Pagination{1, 1}, where)
+	q, a := where.Dialect.FetchFields(table, fields, NewPagination(1, 1), where)
 
 	r := db.QueryRow(q, a...)
-
-	fmt.Println(r)
 
 	// Create dummy variables that we can scan the results of the query into
 	var addresses []interface{}
@@ -72,8 +69,6 @@ func Load(db *sql.DB, table string, target interface{}, where *WhereClause) erro
 		}
 		log.Panic("dbmdl: ", err)
 	}
-
-	fmt.Println(target)
 
 	return nil
 }

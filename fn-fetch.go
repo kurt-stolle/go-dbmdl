@@ -36,7 +36,7 @@ func Fetch(db *sql.DB, t string, sRef interface{}, where *WhereClause, pag *Pagi
 
 	// Fallbacks
 	if pag == nil {
-		pag = &Pagination{1, 1}
+		pag = NewPagination(1, 1)
 	}
 
 	// If we did not supply and fields to be selected, select all fields
@@ -99,6 +99,13 @@ func Fetch(db *sql.DB, t string, sRef interface{}, where *WhereClause, pag *Pagi
 			dummyVariables = append(dummyVariables, nwtyp.Elem())                        // Store our newly made Value
 			dummyVariablesAddresses = append(dummyVariablesAddresses, nwtyp.Interface()) // Store the address as well, so that we can supply this to the Scan function later down the road
 		}
+		wg.Done()
+	}()
+
+	// Pagination
+	wg.Add(1)
+	go func() {
+		pag.Load(db, t, where)
 		wg.Done()
 	}()
 
