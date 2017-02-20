@@ -4,12 +4,20 @@ import (
 	"database/sql"
 	"math"
 	"strconv"
+	"strings"
+)
+
+// Constants for ordering
+const (
+	OrderAscending  = " ASC"
+	OrderDescending = " DESC"
 )
 
 // Pagination is used to prevent dbmdl from selecting far too many entries
 type Pagination struct {
 	Page          int
 	AmountPerPage int
+	OrderBy       string
 	Prev          int
 	Next          int
 	First         int
@@ -18,7 +26,12 @@ type Pagination struct {
 
 // String returns a LIMIT and OFFSET clause
 func (p *Pagination) String() string {
-	return `LIMIT ` + strconv.Itoa(p.AmountPerPage) + ` OFFSET ` + strconv.Itoa((p.Page-1)*p.AmountPerPage)
+	return strings.Join([]string{p.OrderBy, `LIMIT`, strconv.Itoa(p.AmountPerPage), ` OFFSET `, strconv.Itoa((p.Page - 1) * p.AmountPerPage)}, " ")
+}
+
+// Order specifies the sorting Order
+func (p *Pagination) Order(spec ...string) {
+	p.OrderBy = "ORDER BY " + strings.Join(spec, ",")
 }
 
 // Load will populate the struct according to a table name and where clause
