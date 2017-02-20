@@ -8,17 +8,17 @@ import (
 
 // Pagination is used to prevent dbmdl from selecting far too many entries
 type Pagination struct {
-	Page          uint
-	AmountPerPage uint
-	Prev          uint
-	Next          uint
-	First         uint
-	Last          uint
+	Page          int
+	AmountPerPage int
+	Prev          int
+	Next          int
+	First         int
+	Last          int
 }
 
 // String returns a LIMIT and OFFSET clause
 func (p *Pagination) String() string {
-	return `LIMIT ` + strconv.FormatUint(uint64(p.AmountPerPage), 10) + ` OFFSET ` + strconv.FormatUint(uint64((p.Page-1)*p.AmountPerPage), 10)
+	return `LIMIT ` + strconv.Itoa(p.AmountPerPage) + ` OFFSET ` + strconv.Itoa((p.Page-1)*p.AmountPerPage)
 }
 
 // Load will populate the struct according to a table name and where clause
@@ -36,7 +36,7 @@ func (p *Pagination) Load(db *sql.DB, t string, where *WhereClause) error {
 	}
 
 	// Fill the pagination table with the rows we selected
-	p.Last = uint(math.Ceil(float64(count) / float64(p.AmountPerPage)))
+	p.Last = int(math.Ceil(float64(count) / float64(p.AmountPerPage)))
 	p.Prev = p.Page - 1
 	if p.Prev < p.First {
 		p.Prev = p.First
@@ -50,7 +50,7 @@ func (p *Pagination) Load(db *sql.DB, t string, where *WhereClause) error {
 }
 
 // NewPagination returns a Pagination pointer
-func NewPagination(page, amount uint) *Pagination {
+func NewPagination(page, amount int) *Pagination {
 	pag := new(Pagination)
 	pag.Page = page
 	pag.AmountPerPage = amount
