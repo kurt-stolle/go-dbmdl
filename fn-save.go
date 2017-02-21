@@ -19,6 +19,7 @@ func Save(db *sql.DB, target interface{}, where *WhereClause, fields ...string) 
 	}
 	targetType = targetType.Elem()
 
+	// If there are no fields provided, select every field without an omit tag
 	if len(fields) < 1 {
 		for i := 0; i < targetType.NumField(); i++ {
 			field := targetType.Field(i) // Get the field at index i
