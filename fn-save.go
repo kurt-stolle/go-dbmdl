@@ -13,11 +13,15 @@ func Save(db *sql.DB, target interface{}, where *WhereClause, fields ...string) 
 	}
 
 	// Set fields is not given already
-	var ref = getReflectType(target)
+	var targetType = reflect.TypeOf(target)
+	if targetType.Kind() != reflect.Ptr {
+		panic(ErrNoPointer)
+	}
+	targetType = targetType.Elem()
 
 	if len(fields) < 1 {
-		for i := 0; i < ref.NumField(); i++ {
-			field := ref.Field(i) // Get the field at index i
+		for i := 0; i < targetType.NumField(); i++ {
+			field := targetType.Field(i) // Get the field at index i
 			if field.Tag.Get("dbmdl") == "" {
 				continue
 			}
@@ -34,11 +38,7 @@ func Save(db *sql.DB, target interface{}, where *WhereClause, fields ...string) 
 
 	// Build fieldsValues
 	var fieldsValues = make(map[string]interface{})
-	var val = reflect.ValueOf(target)
-	if val.Kind() != reflect.Ptr {
-
-	}
-	val = val.Elem()
+	var val = reflect.ValueOf(target).Elem()
 
 	// Get the dialect and table name
 	d, t, err := getDT(reflect.TypeOf(target).Elem())
