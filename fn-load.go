@@ -15,10 +15,7 @@ func Load(db *sql.DB, target interface{}, where *WhereClause) error {
 	}
 
 	// First, verify whether the supplied target is actually a pointer
-	var targetType = reflect.TypeOf(target)
-	if targetType.Kind() != reflect.Ptr {
-		return ErrNoPointer
-	}
+	var targetType = getReflectType(target)
 
 	// Set references for later use
 	targetType = targetType.Elem()

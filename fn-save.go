@@ -13,10 +13,7 @@ func Save(db *sql.DB, target interface{}, where *WhereClause, fields ...string) 
 	}
 
 	// Set fields is not given already
-	var ref = reflect.TypeOf(target)
-	if ref.Kind() == reflect.Ptr {
-		ref = ref.Elem()
-	}
+	var ref = getReflectType(target)
 
 	if len(fields) < 1 {
 		for i := 0; i < ref.NumField(); i++ {

@@ -26,11 +26,7 @@ func RegisterStruct(db *sql.DB, dlct string, t string, s interface{}) error {
 	// s Must be a pointer to a struct of the type we are looking for
 	// It is advised but not required to use the nil value
 	// because this saves us memory
-	refType := reflect.TypeOf(s)
-	// Verify whether it's a pointer or not
-	if refType.Kind() != reflect.Ptr {
-		return ErrNoPointer
-	}
+	refType := getReflectType(t)
 
 	// Elem selects the type of the value pointed to by s
 	refType = refType.Elem()

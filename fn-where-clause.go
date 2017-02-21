@@ -2,7 +2,6 @@ package dbmdl
 
 import (
 	"bytes"
-	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
@@ -34,15 +33,8 @@ func NewWhereClause(ifc interface{}) *WhereClause {
 		w.Dialect = d
 	case *Dialect:
 		w.Dialect = v
-	case reflect.Type:
-		d, ok := tables[v]
-		if !ok {
-			panic(ErrStructNotFound)
-		}
-
-		w.Dialect = d.dialect
 	default:
-		d, ok := tables[reflect.TypeOf(v)]
+		d, ok := tables[getReflectType(v)]
 		if !ok {
 			panic(ErrStructNotFound)
 		}

@@ -13,11 +13,7 @@ import (
 func Fetch(db *sql.DB, sRef interface{}, where *WhereClause, pag *Pagination, fields ...string) ([]interface{}, *Pagination, error) {
 
 	// Set the reference, but check whether it's a pointer first
-	targetType := reflect.TypeOf(sRef)
-	if targetType.Kind() != reflect.Ptr {
-		return nil, nil, ErrNoPointer
-	}
-	targetType = targetType.Elem()
+	targetType := getReflectType(sRef)
 
 	// Get the dialect and table name
 	d, t, err := getDT(targetType)

@@ -13,3 +13,16 @@ func getTagParameters(field reflect.StructField) []string {
 
 	return tag
 }
+
+func getReflectType(ifc interface{}) reflect.Type {
+	switch v := ifc.(type) {
+	case reflect.Type:
+		if v.Kind() == reflect.Ptr {
+			return v.Elem()
+		}
+
+		return v
+	default:
+		return getReflectType(reflect.TypeOf(v))
+	}
+}

@@ -9,11 +9,7 @@ import (
 // Patch is used when there is no struct initialization required, e.g. when only fields in the database need to be updated.
 func Patch(db *sql.DB, sRef interface{}, where *WhereClause, update map[string]interface{}) error {
 	// First, verify whether the supplied target is actually a pointer
-	var targetType = reflect.TypeOf(sRef)
-	if targetType.Kind() != reflect.Ptr {
-		return ErrNoPointer
-	}
-	targetType = targetType.Elem()
+	var targetType = getReflectType(sRef)
 
 	// Create a new struct so that we can pass this to Save
 	var newStruct = reflect.New(targetType)
