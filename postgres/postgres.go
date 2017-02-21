@@ -141,7 +141,7 @@ $$;`
 	}
 
 	d.Count = func(tableName string, w *dbmdl.WhereClause) (string, []interface{}) {
-		return ("SELECT COUNT(*) AS rows FROM " + tableName + " " + where.String()), where.Values // Pretty slow, but this is used only for pagination - a less accurate method would not  be sufficient
+		return ("SELECT COUNT(*) AS rows FROM " + tableName + " " + w.String()), w.Values // Pretty slow, but this is used only for pagination - a less accurate method would not  be sufficient
 	}
 
 	d.GetPlaceholder = func(offset int) string {
