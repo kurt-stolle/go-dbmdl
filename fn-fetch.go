@@ -31,6 +31,10 @@ func Fetch(db *sql.DB, sRef interface{}, where *WhereClause, pag *Pagination, fi
 		pag = NewPagination(1, 1)
 	}
 
+	if where == nil {
+		where = NewWhereClause(d)
+	}
+
 	// If we did not supply and fields to be selected, select all fields
 	if len(fields) < 1 {
 		for i := 0; i < targetType.NumField(); i++ {
@@ -50,7 +54,7 @@ func Fetch(db *sql.DB, sRef interface{}, where *WhereClause, pag *Pagination, fi
 	}
 
 	if len(fields) < 1 {
-		return nil, nil, errors.New("We have nothing to select because all fields are ommited by dbmdl")
+		return nil, nil, errors.New("Nothing to select, all fields flagged omit")
 	}
 
 	// Do the following tasks concurrently
