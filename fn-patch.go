@@ -7,7 +7,7 @@ import (
 
 // Patch works much the same as Save, but only performs an update according to a map.
 // Patch is used when there is no struct initialization required, e.g. when only fields in the database need to be updated.
-func Patch(db *sql.DB, t string, sRef interface{}, where *WhereClause, update map[string]interface{}) error {
+func Patch(db *sql.DB, sRef interface{}, where *WhereClause, update map[string]interface{}) error {
 	// First, verify whether the supplied target is actually a pointer
 	var targetType = reflect.TypeOf(sRef)
 	if targetType.Kind() != reflect.Ptr {
@@ -32,5 +32,5 @@ func Patch(db *sql.DB, t string, sRef interface{}, where *WhereClause, update ma
 	}
 
 	// Perform Save
-	return Save(db, t, newStruct.Addr().Interface(), where, fields...)
+	return Save(db, newStruct.Addr().Interface(), where, fields...)
 }

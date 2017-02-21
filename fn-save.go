@@ -6,7 +6,7 @@ import (
 )
 
 // Save will add to the database or update an existing resource if a nonzero WHERE is provided
-func Save(db *sql.DB, t string, target interface{}, where *WhereClause, fields ...string) error {
+func Save(db *sql.DB, target interface{}, where *WhereClause, fields ...string) error {
 	// Check dialect
 	if where.Dialect == nil {
 		return ErrNoDialect
@@ -38,8 +38,15 @@ func Save(db *sql.DB, t string, target interface{}, where *WhereClause, fields .
 	// Build fieldsValues
 	var fieldsValues = make(map[string]interface{})
 	var val = reflect.ValueOf(target)
-	if val.Kind() == reflect.Ptr {
-		val = val.Elem()
+	if val.Kind() != reflect.Ptr {
+
+	}
+	val = val.Elem()
+
+	// Get the dialect and table name
+	d, t, err := getDT(reflect.TypeOf(target).Elem())
+	if err != nil {
+		return err
 	}
 
 	for _, f := range fields {
@@ -54,9 +61,9 @@ func Save(db *sql.DB, t string, target interface{}, where *WhereClause, fields .
 	var q string
 	var a []interface{}
 	if len(where.Clauses) < 1 { // If the where clause is empty, INSERT:
-		q, a = where.Dialect.Insert(t, fieldsValues) // Build query
+		q, a = d.Insert(t, fieldsValues) // Build query
 	} else { // If the where clause is not empty, UPDATE:
-		q, a = where.Dialect.Update(t, fieldsValues, where) // Build query
+		q, a = d.Update(t, fieldsValues, where) // Build query
 	}
 
 	// Wait for response and close channel

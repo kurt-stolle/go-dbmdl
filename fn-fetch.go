@@ -10,11 +10,7 @@ import (
 
 // Fetch loads data from a database a populates the struct
 // sRef is a pointer to the struct, only used for getting the reflection type
-func Fetch(db *sql.DB, t string, sRef interface{}, where *WhereClause, pag *Pagination, fields ...string) ([]interface{}, *Pagination, error) {
-	// Check whether the dialect exists
-	if where.Dialect == nil {
-		return nil, nil, ErrNoDialect
-	}
+func Fetch(db *sql.DB, sRef interface{}, where *WhereClause, pag *Pagination, fields ...string) ([]interface{}, *Pagination, error) {
 
 	// Set the reference, but check whether it's a pointer first
 	targetType := reflect.TypeOf(sRef)
@@ -22,6 +18,12 @@ func Fetch(db *sql.DB, t string, sRef interface{}, where *WhereClause, pag *Pagi
 		return nil, nil, ErrNoPointer
 	}
 	targetType = targetType.Elem()
+
+	// Get the dialect and table name
+	d, t, err := getDT(targetType)
+	if err != nil {
+		return nil, nil, err
+	}
 
 	// Check whether we know of this type's existance
 	if _, exists := tables[targetType]; !exists {
@@ -65,7 +67,7 @@ func Fetch(db *sql.DB, t string, sRef interface{}, where *WhereClause, pag *Pagi
 	// Build and execute the Query
 	wg.Add(1)
 	go func() {
-		q, a := where.Dialect.FetchFields(t, fields, pag, where)
+		q, a := d.FetchFields(t, fields, pag, where)
 
 		rows, err := db.Query(q, a...)
 		if err != nil && err != sql.ErrNoRows {

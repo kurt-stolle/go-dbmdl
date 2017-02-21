@@ -8,7 +8,7 @@ import (
 
 // Load will load a single struct from the database based on a where clause
 // Target is a pointer to a struct
-func Load(db *sql.DB, table string, target interface{}, where *WhereClause) error {
+func Load(db *sql.DB, target interface{}, where *WhereClause) error {
 	// Check whether the dialect exists
 	if where.Dialect == nil {
 		return ErrNoDialect
@@ -23,6 +23,12 @@ func Load(db *sql.DB, table string, target interface{}, where *WhereClause) erro
 	// Set references for later use
 	targetType = targetType.Elem()
 	targetValue := reflect.ValueOf(target).Elem()
+
+	// Get the dialect and table name
+	d, t, err := getDT(targetType)
+	if err != nil {
+		return err
+	}
 
 	// Check whether we know of this type's existance
 	if _, exists := tables[targetType]; !exists {
@@ -47,7 +53,7 @@ func Load(db *sql.DB, table string, target interface{}, where *WhereClause) erro
 	}
 
 	// Query using the same shit as Fetch Fields
-	q, a := where.Dialect.FetchFields(table, fields, NewPagination(1, 1), where)
+	q, a := d.FetchFields(t, fields, NewPagination(1, 1), where)
 
 	r := db.QueryRow(q, a...)
 
