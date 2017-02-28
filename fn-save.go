@@ -7,11 +7,6 @@ import (
 
 // Save will add to the database or update an existing resource if a nonzero WHERE is provided
 func Save(db *sql.DB, target interface{}, where *WhereClause, fields ...string) error {
-	// Check dialect
-	if where.Dialect == nil {
-		return ErrNoDialect
-	}
-
 	// Set fields is not given already
 	var targetType = reflect.TypeOf(target)
 	if targetType.Kind() != reflect.Ptr {
