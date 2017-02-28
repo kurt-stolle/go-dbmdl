@@ -7,6 +7,7 @@ import (
 
 // Save will add to the database or update an existing resource if a nonzero WHERE is provided
 func Save(db *sql.DB, target interface{}, where *WhereClause, fields ...string) error {
+
 	// Set fields is not given already
 	var targetType = reflect.TypeOf(target)
 	if targetType.Kind() != reflect.Ptr {
@@ -53,7 +54,7 @@ func Save(db *sql.DB, target interface{}, where *WhereClause, fields ...string) 
 	// Handle query
 	var q string
 	var a []interface{}
-	if len(where.Clauses) < 1 { // If the where clause is empty, INSERT:
+	if where == nil || len(where.Clauses) < 1 { // If the where clause is empty, INSERT:
 		q, a = d.Insert(t, fieldsValues) // Build query
 	} else { // If the where clause is not empty, UPDATE:
 		q, a = d.Update(t, fieldsValues, where) // Build query
