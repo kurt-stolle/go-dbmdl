@@ -18,6 +18,7 @@ func createTables(db *sql.DB, ref reflect.Type) error {
 	// Build fields list
 	var fields []string
 	var primaryKeys []string
+	var notNull []string
 	var defaults = make(map[string]string)
 
 	for i := 0; i < ref.NumField(); i++ {
@@ -28,29 +29,20 @@ func createTables(db *sql.DB, ref reflect.Type) error {
 			continue
 		}
 
-		// First find the default value
+		// First find the special tags
 		var regDefault = regexp.MustCompile("default .+")
-		var defaultValue string
 		for _, v := range tag {
 			if i := regDefault.FindStringIndex(v); i != nil {
-				defaultValue = v[(i[0] + 8):]
-				defaults[field.Name] = defaultValue // Move 8 spaces to the right from 'default ' to capture the type
-			}
-		}
-
-		// Then the primary key
-		for _, v := range tag {
-			if v == "primary key" {
+				defaults[field.Name] = v[(i[0] + 8):] // Move 8 spaces to the right from 'default ' to capture the type
+			} else if v == "primary key" {
 				primaryKeys = append(primaryKeys, field.Name)
+			} else if v == "not null" {
+				notNull = append(notNull, field.Name)
 			}
 		}
 
 		// Add the definition to the list
-		var definition = field.Name + " " + tag[0]
-		if defaultValue != "" {
-			definition += " default " + defaultValue
-		}
-		fields = append(fields, definition)
+		fields = append(fields, field.Name+" "+tag[0])
 	}
 
 	// Query
@@ -72,6 +64,11 @@ func createTables(db *sql.DB, ref reflect.Type) error {
 	}
 
 	q = t.dialect.SetDefaultValues(t.name, defaults) // Build default values query
+	if _, err := db.Exec(q); err != nil {
+		log.Panic(q)
+	}
+
+	q = t.dialect.SetNotNull(t.name, notNull) // Build default values query
 	if _, err := db.Exec(q); err != nil {
 		log.Panic(q)
 	}

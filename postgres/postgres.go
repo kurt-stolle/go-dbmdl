@@ -53,6 +53,15 @@ $$;`
 		return strings.Join(q, "\n")
 	}
 
+	d.SetNotNull = func(n string, v map[string]string) string {
+		var q []string
+		for c, d := range v {
+			q = append(q, `ALTER TABLE ONLY `+n+` ALTER COLUMN `+c+` SET NOT NULL;`)
+		}
+
+		return strings.Join(q, "\n")
+	}
+
 	d.FetchFields = func(tableName string, fields []string, p *dbmdl.Pagination, w *dbmdl.WhereClause) (string, []interface{}) {
 		var query bytes.Buffer
 		var args []interface{}
