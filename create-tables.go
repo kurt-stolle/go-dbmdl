@@ -48,7 +48,7 @@ func createTables(db *sql.DB, ref reflect.Type) error {
 		// Add the definition to the list
 		var definition = field.Name + " " + tag[0]
 		if defaultValue != "" {
-			definition += " " + defaultValue
+			definition += " default " + defaultValue
 		}
 		fields = append(fields, definition)
 	}
