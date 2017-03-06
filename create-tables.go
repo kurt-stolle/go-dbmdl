@@ -28,17 +28,30 @@ func createTables(db *sql.DB, ref reflect.Type) error {
 			continue
 		}
 
-		fields = append(fields, field.Name+" "+tag[0])
-
 		regDefault := regexp.MustCompile("default .+")
 
+		// First find the default value
+		var defaultValue string
+		for _, v := range tag {
+			if i := regDefault.FindStringIndex(v); i != nil {
+				defaultValue = v[(i[0] + 8):]
+				defaults[field.Name] = defaultValue // Move 8 spaces to the right from 'default ' to capture the type
+			}
+		}
+
+		// Then the primary key
 		for _, v := range tag {
 			if v == "primary key" {
 				primaryKeys = append(primaryKeys, field.Name)
-			} else if i := regDefault.FindStringIndex(v); i != nil {
-				defaults[field.Name] = v[(i[0] + 8):] // Move 8 spaces to the right from 'default ' to capture the type
 			}
 		}
+
+		// Add the definition to the list
+		var definition = field.Name + " " + tag[0]
+		if defaultValue != "" {
+			definition += " " + defaultValue
+		}
+		fields = append(fields, definition)
 	}
 
 	// Query
