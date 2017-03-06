@@ -53,9 +53,9 @@ $$;`
 		return strings.Join(q, "\n")
 	}
 
-	d.SetNotNull = func(n string, v map[string]string) string {
+	d.SetNotNull = func(n string, v []string) string {
 		var q []string
-		for c, d := range v {
+		for _, c := range v {
 			q = append(q, `ALTER TABLE ONLY `+n+` ALTER COLUMN `+c+` SET NOT NULL;`)
 		}
 
