@@ -13,6 +13,16 @@ type WhereClause struct {
 	Clauses []string
 	Dialect *Dialect // Dialect usually needn't be set by the programmer, it is implicitly found by the relevant dbmdl functions
 	Format  string
+	Order   []string
+}
+
+// helper function for the order
+func orderString(or []string) string {
+	if len(or) < 1 {
+		return ""
+	}
+
+	return " ORDER BY " + strings.Join(or, ",")
 }
 
 // NewWhereClause returns a where clause with a dialect
@@ -55,7 +65,7 @@ func (w *WhereClause) String() string {
 		return ``
 	}
 
-	return `WHERE ` + strings.Join(w.Clauses, " AND ")
+	return `WHERE ` + strings.Join(w.Clauses, " AND ") + orderString(w.Order)
 }
 
 // FormattedString strings a WHERE clause string
@@ -80,7 +90,7 @@ func (w *WhereClause) FormattedString(f string) string {
 		buf.WriteString(w.Clauses[i])
 	}
 
-	return buf.String()
+	return buf.String() + orderString(w.Order)
 }
 
 // AddClause a clause and possibly a value
@@ -103,6 +113,16 @@ func (w *WhereClause) AddValuedClause(clause string, value interface{}) (clauseI
 	valueIndex = len(w.Values) - 1
 
 	return clauseIndex, valueIndex
+}
+
+// OrderDesc orders the set descending
+func (w *WhereClause) OrderDesc(column string) {
+	w.Order = append(w.Order, column+" DESC")
+}
+
+// OrderAsc orders the set ascending
+func (w *WhereClause) OrderAsc(column string) {
+	w.Order = append(w.Order, column+" ASC")
 }
 
 // GetPlaceholder returns a placeholder whose index corresponds to the current amount of entries in Values
