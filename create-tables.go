@@ -28,9 +28,8 @@ func createTables(db *sql.DB, ref reflect.Type) error {
 			continue
 		}
 
-		regDefault := regexp.MustCompile("default .+")
-
 		// First find the default value
+		var regDefault = regexp.MustCompile("default .+")
 		var defaultValue string
 		for _, v := range tag {
 			if i := regDefault.FindStringIndex(v); i != nil {
