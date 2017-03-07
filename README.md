@@ -4,7 +4,7 @@ A library for modelling databases according to a Go `struct`. Intentionally made
 
 ## Usage
 
-### 1 Registering a dialect that queries will be constructed in
+### Registering a dialect that queries will be constructed in
 
 You can choose the dialect for your queries by importing a package that defines one, or calling `dbmdl.RegisterDialect(name string, d *dbmdl.Dialect)`. In the following example, we register the Postgres dialect.
 
@@ -17,7 +17,7 @@ import (
 
 The "\_" character indicates that we only import this package for the side effects, i.e. the `init()` function which registers the dialect.
 
-### 2 Registering the structs that can be used by dbmdl
+### Registering the structs that can be used by dbmdl
 
 To use a struct in dbmdl, it must be registered first.
 
@@ -35,20 +35,20 @@ if err := dbmdl.RegisterStruct(conn, "postgres", "project_models", (*MyModel)(ni
 
 Evident from the example above, fields must have a `dbmdl` tag to save them in the database. The struct must also have at least one `primary key`.
 
-## The `dbmdl` tag
+### The `dbmdl` tag
 
-The `dbmdl` tag must always start with the (database) datatype. This means that this datatype is **never** implicit from the Golang datatype.
+The `dbmdl` struct field tag must always start with the (database) datatype. The datatype is **not** implicit from the Golang datatype.
 
-Other fields that may optionally be added to the tag are:
+#### Parameters
 
 - `primary key`: Indicates that the field is a primary key in the database. There may be multiple primary keys.
 - `default X`: Specifies a default value in the database. X indicates some default value.
 - `not null`: The value may not be `NULL`. Note that it is preferred to use this, rather than appending `not null` to the database.
 - `omit`: Omits the value by default when performing a Population. Useful for columns with optional fields or expensive fields that don't always need to be loaded
 
-Optional fields are separated from the primary field and other optional field by a "," character.
+Parameters are separated by a comma sign.
 
-The following is an example of an elaborate `dbmdl` tag:
+#### Examples
 
 ```go
 type Model struct {
@@ -58,34 +58,5 @@ type Model struct {
 }
 ```
 
-## RegisterDialect
-
-TODO: Document me
-
-## CreateTable
-
-TODO: Document me
-
-## Save
-
-TODO: Document me
-
-## Patch
-
-TODO: Document me
-
-## Load
-
-TODO: Document me
-
-## Fetch
-
-TODO: Document me
-
-## Pagination
-
-TODO: Document me
-
-## WhereClause
-
-TODO: Document me
+## Documentation
+See [_godoc_](https://godoc.org/github.com/kurt-stolle/go-dbmdl).
