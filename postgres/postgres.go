@@ -46,8 +46,8 @@ $$;`
 	d.SetDefaultValues = func(n string, v map[string]string) string {
 		var q []string
 		for c, d := range v {
-			q = append(q, `UPDATE `+n+` SET `+c+`=`+d+` WHERE `+c+`=NULL;
-				ALTER TABLE ONLY `+n+` ALTER COLUMN `+c+` SET DEFAULT `+d+`;`)
+			q = append(q, `UPDATE `+n+` SET `+c+`=`+d+` WHERE `+c+` IS NULL;
+				ALTER TABLE `+n+` ALTER COLUMN `+c+` SET DEFAULT `+d+`;`)
 		}
 
 		return strings.Join(q, "\n")
