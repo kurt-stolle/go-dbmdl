@@ -12,26 +12,23 @@ func init() {
 	// Set-up the dialeect
 	d := new(dbmdl.Dialect)
 
-	d.CreateTable = func(n string, f []string) string {
-		var query bytes.Buffer
-		query.WriteString(`CREATE TABLE IF NOT EXISTS ` + n + ` ();`)
-
-		for _, dt := range f {
-			query.WriteString(`DO $$
-	BEGIN
-		BEGIN
-			ALTER TABLE ` + n + ` ADD COLUMN ` + dt + `;
-		EXCEPTION
-			WHEN duplicate_column THEN RAISE NOTICE 'column ` + dt + ` already exists in ` + n + `.';
-		END;
-	END;
-$$;`)
-		}
-
-		return query.String()
+	d.CreateTable = func(n string) string {
+		return `CREATE TABLE IF NOT EXISTS ` + n + ` ();`
 	}
 
-	d.SetPrimaryKey = func(n string, f []string) string {
+	d.AddField = func(n, f string) string {
+		return `DO $$
+	BEGIN
+		BEGIN
+			ALTER TABLE ` + n + ` ADD COLUMN ` + f + `;
+		EXCEPTION
+			WHEN duplicate_column THEN RAISE NOTICE 'column ` + f + ` already exists in ` + n + `.';
+		END;
+	END;
+$$;`
+	}
+
+	d.SetPrimaryKeys = func(n string, f []string) string {
 		return `DO $$
 	BEGIN
 		if not exists (select constraint_name
@@ -43,23 +40,13 @@ $$;`)
 $$;`
 	}
 
-	d.SetDefaultValues = func(n string, v map[string]string) string {
-		var q []string
-		for c, d := range v {
-			q = append(q, `UPDATE `+n+` SET `+c+`=`+d+` WHERE `+c+` IS NULL;
-				ALTER TABLE `+n+` ALTER COLUMN `+c+` SET DEFAULT `+d+`;`)
-		}
-
-		return strings.Join(q, "\n")
+	d.SetDefaultValue = func(n, field, def string) string {
+		return `UPDATE ` + n + ` SET ` + field + `=` + def + ` WHERE ` + field + ` IS NULL;
+				ALTER TABLE ` + n + ` ALTER COLUMN ` + field + ` SET DEFAULT ` + def
 	}
 
-	d.SetNotNull = func(n string, v []string) string {
-		var q []string
-		for _, c := range v {
-			q = append(q, `ALTER TABLE ONLY `+n+` ALTER COLUMN `+c+` SET NOT NULL;`)
-		}
-
-		return strings.Join(q, "\n")
+	d.SetNotNull = func(n string, v string) string {
+		return `ALTER TABLE ` + n + ` ALTER COLUMN ` + v + ` SET NOT NULL`
 	}
 
 	d.FetchFields = func(tableName string, fields []string, p *dbmdl.Pagination, w *dbmdl.WhereClause) (string, []interface{}) {

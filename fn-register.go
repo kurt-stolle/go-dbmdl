@@ -3,7 +3,6 @@ package dbmdl
 import (
 	"database/sql"
 	"errors"
-	"log"
 	"reflect"
 )
 
@@ -35,8 +34,6 @@ func RegisterStruct(db *sql.DB, dlct string, t string, s interface{}) error {
 
 	tables[refType] = &table{dialect: d, name: t}
 
-	log.Println("Registered struct: " + refType.Name())
-
 	// Return possible errors from table creation
-	return createTables(db, refType)
+	return nil
 }
