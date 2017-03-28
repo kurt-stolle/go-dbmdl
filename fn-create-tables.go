@@ -56,25 +56,25 @@ func GenerateTable(db *sql.DB, reference interface{}) error {
 
 	q = t.dialect.CreateTable(t.name)
 	if _, err := db.Exec(q); err != nil {
-		log.Fatal("dbmdl: Failed to create table", t.name, "\nQuery:", q, "\nError:", err)
+		log.Fatal("dbmdl: Failed to create table ", t.name, "\nQuery:", q, "\nError:", err)
 	}
 
 	for _, field := range fields {
 		q = t.dialect.AddField(t.name, field)
 		if _, err := db.Exec(q); err != nil {
-			log.Fatal("dbmdl: Failed to add column", field, "\nQuery:", q, "\nError:", err)
+			log.Fatal("dbmdl: Failed to add column ", field, "\nQuery:", q, "\nError:", err)
 		}
 	}
 
 	q = t.dialect.SetPrimaryKeys(t.name, primaryKeys)
 	if _, err := db.Exec(q); err != nil {
-		log.Fatal("dbmdl: Failed to set primary keys for", t.name, "\nQuery:", q, "\nError:", err)
+		log.Fatal("dbmdl: Failed to set primary keys for ", t.name, "\nQuery:", q, "\nError:", err)
 	}
 
 	for field, def := range defaults {
 		q = t.dialect.SetDefaultValue(t.name, field, def)
 		if _, err := db.Exec(q); err != nil {
-			log.Fatal("dbmdl: Failed to set default value for", field, "to", def, "\nQuery:", q, "\nError:", err)
+			log.Fatal("dbmdl: Failed to set default value for column ", field, " to ", def, "\nQuery:", q, "\nError:", err)
 		}
 	}
 
