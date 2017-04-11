@@ -1,37 +1,73 @@
 package dbmdl
 
 import (
+	"bytes"
 	"database/sql"
 	"math"
 	"strconv"
 	"strings"
 )
 
-// Constants for ordering
-const (
-	OrderAscending  = " ASC"
-	OrderDescending = " DESC"
-)
+// Sorting returns an array of how a result will be sorted
+type Sorting []sortfield
+
+type sortfield struct {
+	Field     string
+	Ascending bool
+}
 
 // Pagination is used to prevent dbmdl from selecting far too many entries
 type Pagination struct {
 	Page          int
 	AmountPerPage int
-	OrderBy       string
 	Prev          int
 	Next          int
 	First         int
 	Last          int
+
+	Sorting Sorting
 }
 
 // String returns a LIMIT and OFFSET clause
 func (p *Pagination) String() string {
-	return strings.Join([]string{p.OrderBy, `LIMIT`, strconv.Itoa(p.AmountPerPage), ` OFFSET `, strconv.Itoa((p.Page - 1) * p.AmountPerPage)}, " ")
+	return strings.Join([]string{p.SortingString(), p.LimitsString()}, " ") // Use join because we don't know whether either exists
 }
 
-// Order specifies the sorting Order
-func (p *Pagination) Order(spec ...string) {
-	p.OrderBy = "ORDER BY " + strings.Join(spec, ",")
+// LimitsString returns the limits and offset
+func (p *Pagination) LimitsString() string {
+	return `LIMIT ` + strconv.Itoa(p.AmountPerPage) + ` OFFSET ` + strconv.Itoa((p.Page-1)*p.AmountPerPage)
+}
+
+// SortingString returns the sorting order
+func (p *Pagination) SortingString() string {
+	if len(p.Sorting) <= 0 {
+		return ""
+	}
+	var nw bytes.Buffer
+
+	nw.WriteString("ORDER BY")
+	for _, spec := range p.Sorting {
+		nw.WriteByte(' ')
+		nw.WriteString(spec.Field)
+		nw.WriteByte(' ')
+		if spec.Ascending {
+			nw.WriteString("ASC")
+			continue
+		}
+		nw.WriteString("DESC")
+	}
+
+	return nw.String()
+}
+
+// OrderDescending adds a descending order item
+func (p *Pagination) OrderDescending(field string) {
+	p.Sorting = append(p.Sorting, sortfield{field, false})
+}
+
+// OrderAscending adds a ascending order item
+func (p *Pagination) OrderAscending(field string) {
+	p.Sorting = append(p.Sorting, sortfield{field, false})
 }
 
 // Load will populate the struct according to a table name and where clause
