@@ -23,7 +23,7 @@ func Save(db *sql.DB, target interface{}, where *WhereClause, fields ...string) 
 			}
 
 			for _, tag := range getTagParameters(field) {
-				if tag == omit {
+				if tag == omit || regExtern.MatchString(tag) {
 					continue
 				}
 			}

@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"errors"
 	"log"
-	"regexp"
 )
 
 // GenerateTable creates a table for the struct in the database
@@ -21,6 +20,7 @@ func GenerateTable(db *sql.DB, reference interface{}) error {
 	var notNull []string
 	var defaults = make(map[string]string)
 
+	// Iterate over fields
 	for i := 0; i < ref.NumField(); i++ {
 		field := ref.Field(i)          // Get the field at index i
 		tag := getTagParameters(field) // Find the datatype from the dbmdl tag
@@ -29,8 +29,12 @@ func GenerateTable(db *sql.DB, reference interface{}) error {
 			continue
 		}
 
+		// Is this an extern?
+		if regExtern.MatchString(tag[0]) {
+			continue
+		}
+
 		// First find the special tags
-		var regDefault = regexp.MustCompile("default .+")
 		for _, v := range tag {
 			if i := regDefault.FindStringIndex(v); i != nil {
 				defaults[field.Name] = v[(i[0] + 8):] // Move 8 spaces to the right from 'default ' to capture the type

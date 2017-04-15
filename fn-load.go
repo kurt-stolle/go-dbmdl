@@ -36,21 +36,7 @@ func Load(db *sql.DB, target interface{}, where *WhereClause) error {
 	}
 
 	// Get the fields
-	var fields []string
-	for i := 0; i < targetType.NumField(); i++ {
-		field := targetType.Field(i) // Get the field at index i
-		if field.Tag.Get("dbmdl") == "" {
-			continue
-		}
-
-		for _, tag := range getTagParameters(field) {
-			if tag == omit {
-				continue
-			}
-		}
-
-		fields = append(fields, field.Name)
-	}
+	fields := getFields(targetType)
 
 	// Query using the same shit as Fetch Fields
 	q, a := d.FetchFields(t, fields, NewPagination(1, 1), where)

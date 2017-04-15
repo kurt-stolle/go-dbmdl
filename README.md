@@ -37,9 +37,20 @@ Evident from the example above, fields must have a `dbmdl` tag to save them in t
 
 ### The `dbmdl` tag
 
-The `dbmdl` struct field tag must always start with the (database) datatype. The datatype is **not** implicit from the Golang datatype.
+The `dbmdl` struct field tag must always start with the (database) datatype, e.g. `char(15)` or an `extern` field.
 
-#### Parameters
+#### Datatype
+
+When a datatype is provided, DBMDL can modify a linked table in the database. In most cases, the programmer would enter a datatype.
+The amount of available datatypes depends on the implementation of the SQL driver that is used.
+
+#### Extern field
+
+The `extern` field is used only for loading a struct. It loads data from an specified table using a JOIN-clause. This is used for when structs need to be linked with data in other tables.
+
+The syntax of the `extern` field is as follows: `extern Field at Table from LocalForeignKeyField`.
+
+#### Additional parameters
 
 - `primary key`: Indicates that the field is a primary key in the database. There may be multiple primary keys.
 - `default X`: Specifies a default value in the database. X indicates some default value.
@@ -59,4 +70,5 @@ type Model struct {
 ```
 
 ## Documentation
+
 See [_godoc_](https://godoc.org/github.com/kurt-stolle/go-dbmdl).

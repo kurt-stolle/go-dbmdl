@@ -37,20 +37,7 @@ func Fetch(db *sql.DB, sRef interface{}, where *WhereClause, pag *Pagination, fi
 
 	// If we did not supply and fields to be selected, select all fields
 	if len(fields) < 1 {
-		for i := 0; i < targetType.NumField(); i++ {
-			field := targetType.Field(i) // Get the field at index i
-			if field.Tag.Get("dbmdl") == "" {
-				continue
-			}
-
-			for _, tag := range getTagParameters(field) {
-				if tag == omit {
-					continue
-				}
-			}
-
-			fields = append(fields, field.Name)
-		}
+		fields = getFields(targetType)
 	}
 
 	if len(fields) < 1 {
