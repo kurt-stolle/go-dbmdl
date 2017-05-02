@@ -3,6 +3,7 @@ package dbmdl
 import (
 	"database/sql"
 	"reflect"
+	"log"
 )
 
 // Save will add to the database or update an existing resource if a nonzero WHERE is provided
@@ -58,6 +59,8 @@ func Save(db *sql.DB, target interface{}, where *WhereClause, fields ...string) 
 	} else { // If the where clause is not empty, UPDATE:
 		q, a = d.Update(t, fieldsValues, where) // Build query
 	}
+
+	log.Println(q)
 
 	// Wait for response and close channel
 	if _, err := db.Exec(q, a...); err != nil {

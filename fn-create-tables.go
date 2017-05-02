@@ -15,7 +15,7 @@ func GenerateTable(db *sql.DB, reference interface{}) error {
 	}
 
 	// Build fields list
-	var fields []string
+	var fields []([2]string)
 	var primaryKeys []string
 	var notNull []string
 	var defaults = make(map[string]string)
@@ -46,7 +46,7 @@ func GenerateTable(db *sql.DB, reference interface{}) error {
 		}
 
 		// Add the definition to the list
-		fields = append(fields, field.Name+" "+tag[0])
+		fields = append(fields, [2]string{field.Name,tag[0]})
 	}
 
 	// Query
@@ -64,7 +64,7 @@ func GenerateTable(db *sql.DB, reference interface{}) error {
 	}
 
 	for _, field := range fields {
-		q = t.dialect.AddField(t.name, field)
+		q = t.dialect.AddField(t.name, field[0], field[1])
 		if _, err := db.Exec(q); err != nil {
 			log.Fatal("dbmdl: Failed to add column ", field, "\nQuery:", q, "\nError:", err)
 		}
