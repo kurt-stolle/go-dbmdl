@@ -11,38 +11,7 @@ import (
 type WhereClause struct {
 	Values  []interface{}
 	Clauses []string
-	Dialect *Dialect // Dialect usually needn't be set by the programmer, it is implicitly found by the relevant dbmdl functions
 	Format  string
-}
-
-// NewWhereClause returns a where clause with a dialect
-// Accepts:
-// (string) dialect name
-// (*Dialect) dialect
-// (reflect.Type) type
-// (-other-) -> reflect.Type
-func NewWhereClause(ifc interface{}) *WhereClause {
-	w := new(WhereClause)
-	switch v := ifc.(type) {
-	case string:
-		d, ok := dialects[v]
-		if !ok {
-			panic(ErrNoDialect)
-		}
-
-		w.Dialect = d
-	case *Dialect:
-		w.Dialect = v
-	default:
-		d, ok := tables[getReflectType(v)]
-		if !ok {
-			panic(ErrStructNotFound)
-		}
-
-		w.Dialect = d.dialect
-	}
-
-	return w
 }
 
 // String returns a WHERE clause string
@@ -106,6 +75,9 @@ func (w *WhereClause) AddValuedClause(clause string, value interface{}) (clauseI
 }
 
 // GetPlaceholder returns a placeholder whose index corresponds to the current amount of entries in Values
+// In dbmdl, a placeholders are postgres-style: $1, $2, $3, ..., $N
 func (w *WhereClause) GetPlaceholder(offset int) string {
-	return w.Dialect.GetPlaceholder(len(w.Values) + 1 + offset)
+	var n = len(w.Values) + 1 + offset
+
+	return "$" + strconv.Itoa(n)
 }
