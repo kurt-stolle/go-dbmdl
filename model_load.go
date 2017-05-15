@@ -4,44 +4,21 @@ import (
 	"database/sql"
 	"log"
 	"reflect"
+	"eventix.io/ccna/db"
 )
 
 // Load will load a single struct from the database based on a where clause
 // Target is a pointer to a struct
-func Load(db *sql.DB, target interface{}, where *WhereClause) error {
-	// Check whether the dialect exists
-	if where.Dialect == nil {
-		return ErrNoDialect
-	}
-
-	// First, verify whether the supplied target is actually a pointer
-	var targetType = reflect.TypeOf(target)
-	if targetType.Kind() != reflect.Ptr {
-		panic(ErrNoPointer)
-	}
-
-	// Set references for later use
-	targetType = targetType.Elem()
+func (m *Modeller) Load(target interface{}, where *WhereClause) error {
 	targetValue := reflect.ValueOf(target).Elem()
 
-	// Get the dialect and table name
-	d, t, err := getDT(targetType)
-	if err != nil {
-		return err
-	}
-
-	// Check whether we know of this type's existance
-	if _, exists := tables[targetType]; !exists {
-		return ErrUnknownType
-	}
-
 	// Get the fields
-	fields := getFields(targetType)
+	fields := getFields(m.Type)
 
 	// Query using the same shit as Fetch Fields
-	q, a := d.FetchFields(t, fields, NewPagination(1, 1), where)
+	q, a := m.Dialect.FetchFields(m.TableName, fields, NewPagination(1, 1), where)
 
-	r := db.QueryRow(q, a...)
+	r := m.GetDatabase().QueryRow(q, a...)
 
 	// Create dummy variables that we can scan the results of the query into
 	var addresses []interface{}

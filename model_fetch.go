@@ -6,42 +6,14 @@ import (
 	"log"
 	"reflect"
 	"sync"
+	"eventix.io/ccna/db"
 )
 
-// Fetch loads data from a database a populates the struct
-// sRef is a pointer to the struct, only used for getting the reflection type
-func Fetch(db *sql.DB, sRef interface{}, where *WhereClause, pag *Pagination, fields ...string) ([]interface{}, *Pagination, error) {
-
-	// Set the reference, but check whether it's a pointer first
-	targetType := getReflectType(sRef)
-
-	// Get the dialect and table name
-	d, t, err := getDT(targetType)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	// Check whether we know of this type's existance
-	if _, exists := tables[targetType]; !exists {
-		return nil, nil, ErrUnknownType
-	}
-
-	// Fallbacks
-	if pag == nil {
-		pag = NewPagination(1, 1)
-	}
-
-	if where == nil {
-		where = NewWhereClause(d)
-	}
-
+// Fetch loads data from a database, returns an array of interface
+func (m *Modeller) Fetch(pag *Pagination, where *WhereClause, fields ...string) ([]interface{}, error) {
 	// If we did not supply and fields to be selected, select all fields
 	if len(fields) < 1 {
-		fields = getFields(targetType)
-	}
-
-	if len(fields) < 1 {
-		return nil, nil, errors.New("Nothing to select, all fields flagged omit")
+		fields = getFields(m.Type)
 	}
 
 	// Do the following tasks concurrently
@@ -53,15 +25,15 @@ func Fetch(db *sql.DB, sRef interface{}, where *WhereClause, pag *Pagination, fi
 	// Build and execute the Query
 	wg.Add(1)
 	go func() {
-		q, a := d.FetchFields(t, fields, pag, where)
+		q, a := m.Dialect.FetchFields(m.TableName, fields, pag, where)
 
-		r, err := db.Query(q, a...)
+		r, err := m.GetDatabase().Query(q, a...)
 		if err != nil && err != sql.ErrNoRows {
 			log.Fatal(err)
 		}
 		defer r.Close()
 		for _, name := range fields {
-			f, found := targetType.FieldByName(name)
+			f, found := m.Type.FieldByName(name)
 			if !found {
 				continue
 			}
@@ -73,7 +45,7 @@ func Fetch(db *sql.DB, sRef interface{}, where *WhereClause, pag *Pagination, fi
 		}
 
 		for r.Next() {
-			var s = reflect.New(targetType) // Create a new pointer to an empty struct of type targetType
+			var s = reflect.New(m.Type) // Create a new pointer to an empty struct of type targetType
 
 			r.Scan(dummyVariablesAddresses...) // Scan into the slice we populated with dummy variables earlier
 
@@ -90,7 +62,7 @@ func Fetch(db *sql.DB, sRef interface{}, where *WhereClause, pag *Pagination, fi
 	// Pagination
 	wg.Add(1)
 	go func() {
-		if err := pag.Load(db, t, where); err != nil {
+		if err := pag.Load(m, where); err != nil {
 			if err == sql.ErrNoRows {
 				pag.First = 1
 				pag.Next = 1
@@ -106,5 +78,10 @@ func Fetch(db *sql.DB, sRef interface{}, where *WhereClause, pag *Pagination, fi
 	// Wait
 	wg.Wait()
 
-	return data, pag, nil
+	return data, nil
+}
+
+// FetchAny loads data from the database like Fetch, but without requiring a WhereClause
+func (m *Modeller) FetchAny(pag *Pagination, fields ...string) ([]interface{}, error){
+	return m.Fetch(pag, new(WhereClause), fields...)
 }

@@ -5,6 +5,7 @@ import (
     "math"
     "strconv"
     "strings"
+    "eventix.io/ccna/db"
 )
 
 // Sorting returns an array of how a result will be sorted
@@ -68,7 +69,7 @@ func (p *Pagination) OrderAscending(field string) {
 }
 
 // Load will populate the struct according to a table name and where clause
-func (p *Pagination) Load(db *sql.DB, t string, where *WhereClause) error {
+func (p *Pagination) Load(m *Modeller, where *WhereClause) error {
     // First is always 1
     p.First = 1
 
@@ -76,8 +77,8 @@ func (p *Pagination) Load(db *sql.DB, t string, where *WhereClause) error {
     var count int
 
     // Perform a query to get the count
-    query, args := where.Dialect.Count(t, where)
-    if err := db.QueryRow(query, args...).Scan(&count); err != nil {
+    query, args := m.Dialect.Count(m.TableName, where)
+    if err := m.GetDatabase().QueryRow(query, args...).Scan(&count); err != nil {
         return err
     }
 

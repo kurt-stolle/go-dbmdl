@@ -1,19 +1,63 @@
+// Package dbmdl is used for modelling a database according to a golang struct.
 package dbmdl
 
-import "reflect"
+import (
+    "database/sql"
+    "errors"
+    "reflect"
+)
 
-// The table type
-type table struct {
-	dialect *Dialect
-	name    string
+// Constants
+const (
+    omit = "omit"
+)
+
+// Globals
+var (
+    // Errors
+    ErrNotFound       = sql.ErrNoRows
+    ErrStructNotFound = errors.New("dbmdl: The struct provided is not registered with DBMDL")
+    ErrNoDialect      = errors.New("dbmdl: WhereClause has no dialect set")
+    ErrNoPointer      = errors.New("dbmdl: Target is not a pointer")
+    ErrUnknownType    = errors.New("dbmdl: Unknown type requested")
+
+    // Field properties
+)
+
+// Translator is an interface implemented by language dialects, such as github.com/kurt-stolle/go-dbmdl/postgres.Dialect
+type Translator interface {
+    CreateTable(tableName string) string
+    AddField(tableName, field, def string) string
+    SetPrimaryKeys(tableName string, fields []string) string
+    SetDefaultValue(n, field, def string) string
+    SetNotNull(n, field string) string
+    FetchFields(tableName string, fields []string, p *Pagination, w *WhereClause) (string, []interface{})
+    Insert(tableName string, fieldsValues map[string]interface{}) (string, []interface{})
+    Update(tableName string, fieldsValues map[string]interface{}, w *WhereClause) (string, []interface{})
+    Count(tableName string, w *WhereClause) (string, []interface{})
+    GetPlaceholder(i int) string
 }
 
-// Maps for storing data about the server environment
-var tables map[reflect.Type]*table
-var dialects map[string]*Dialect
+// Modeller is a modeller tied to a struct
+type Modeller struct {
+    TableName   string
+    Type        reflect.Type
+    Dialect     Translator
+    GetDatabase func() *sql.DB
+}
 
-// Initialize maps
-func init() {
-	tables = make(map[reflect.Type]*table)
-	dialects = make(map[string]*Dialect)
+// NewModeller creates a new Modeller for a certain database and reflection type
+// Modellers should be saved and re-used
+func NewModeller(tableName string, reflectionType reflect.Type, dialect Translator, getDatabaseFunc func() sql.DB) *Modeller {
+    for reflectionType.Kind() == reflect.Ptr {
+        reflectionType = reflectionType.Elem()
+    }
+
+    mdl := new(Modeller)
+    mdl.TableName = tableName
+    mdl.Type = reflectionType
+    mdl.Dialect = dialect
+    mdl.GetDatabase = getDatabaseFunc
+
+    return mdl
 }

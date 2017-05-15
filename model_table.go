@@ -4,16 +4,11 @@ import (
 	"database/sql"
 	"errors"
 	"log"
+	"eventix.io/ccna/db"
 )
 
-// GenerateTable creates a table for the struct in the database
-func GenerateTable(db *sql.DB, reference interface{}) error {
-	var ref = getReflectType(reference)
-	var t, ok = tables[ref]
-	if !ok {
-		return errors.New("Type not in tables map: " + ref.Name())
-	}
-
+// CreateTable creates a table for the struct in the database
+func (m *Modeller) CreateTable() error {
 	// Build fields list
 	var fields []([2]string)
 	var primaryKeys []string
@@ -21,8 +16,8 @@ func GenerateTable(db *sql.DB, reference interface{}) error {
 	var defaults = make(map[string]string)
 
 	// Iterate over fields
-	for i := 0; i < ref.NumField(); i++ {
-		field := ref.Field(i)          // Get the field at index i
+	for i := 0; i < m.Type.NumField(); i++ {
+		field := m.Type.Field(i)          // Get the field at index i
 		tag := getTagParameters(field) // Find the datatype from the dbmdl tag
 
 		if len(tag) <= 0 || tag[0] == "" {
@@ -51,39 +46,42 @@ func GenerateTable(db *sql.DB, reference interface{}) error {
 
 	// Query
 	if len(primaryKeys) <= 0 {
-		log.Fatal("dbmdl: Struct " + ref.Name() + " has no primary key")
+		log.Fatal("dbmdl: Struct " + m.Type.Name() + " has no primary key")
 	}
 
 	// Start generating the database.
 	// This is done synchronously to prevent any problems with database RW
 	var q string
+	var dl = m.Dialect
+	var db = m.GetDatabase()
+	var tableName = m.TableName
 
-	q = t.dialect.CreateTable(t.name)
+	q = m.Dialect.CreateTable(tableName)
 	if _, err := db.Exec(q); err != nil {
-		log.Fatal("dbmdl: Failed to create table ", t.name, "\nQuery:", q, "\nError:", err)
+		log.Fatal("dbmdl: Failed to create table ", tableName, "\nQuery:", q, "\nError:", err)
 	}
 
 	for _, field := range fields {
-		q = t.dialect.AddField(t.name, field[0], field[1])
+		q = dl.AddField(tableName, field[0], field[1])
 		if _, err := db.Exec(q); err != nil {
 			log.Fatal("dbmdl: Failed to add column ", field, "\nQuery:", q, "\nError:", err)
 		}
 	}
 
-	q = t.dialect.SetPrimaryKeys(t.name, primaryKeys)
+	q = dl.SetPrimaryKeys(tableName, primaryKeys)
 	if _, err := db.Exec(q); err != nil {
-		log.Fatal("dbmdl: Failed to set primary keys for ", t.name, "\nQuery:", q, "\nError:", err)
+		log.Fatal("dbmdl: Failed to set primary keys for ", tableName, "\nQuery:", q, "\nError:", err)
 	}
 
 	for field, def := range defaults {
-		q = t.dialect.SetDefaultValue(t.name, field, def)
+		q = dl.SetDefaultValue(tableName, field, def)
 		if _, err := db.Exec(q); err != nil {
 			log.Fatal("dbmdl: Failed to set default value for column ", field, " to ", def, "\nQuery:", q, "\nError:", err)
 		}
 	}
 
 	for _, field := range notNull {
-		q = t.dialect.SetNotNull(t.name, field)
+		q = dl.SetNotNull(tableName, field)
 		if _, err := db.Exec(q); err != nil {
 			log.Fatal("dbmdl: Failed to add not null constraint to column", field, "\nQuery:", q, "\nError:", err)
 		}
