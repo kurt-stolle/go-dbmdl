@@ -60,7 +60,7 @@ func (_ *Dialect) SetNotNull(n string, v string) string {
     return `ALTER TABLE ` + n + ` ALTER COLUMN ` + v + ` SET NOT NULL`
 }
 
-func (_ *Dialect) FetchFields(tableName string, fieldsSrc []string, p *dbmdl.Pagination, w *dbmdl.WhereClause) (string, []interface{}) {
+func (_ *Dialect) FetchFields(tableName string, fieldsSrc []string, p *dbmdl.Pagination, w dbmdl.WhereSelector) (string, []interface{}) {
     var fields = make([]string, len(fieldsSrc))
     for i, v := range fieldsSrc {
         fields[i] = conventionalizeField(v)
@@ -78,7 +78,7 @@ func (_ *Dialect) FetchFields(tableName string, fieldsSrc []string, p *dbmdl.Pag
     // Where clauses
     if w != nil {
         query.WriteString(` ` + w.String() + ` `)
-        args = w.Values
+        args = w.Values()
     }
 
     // Pagination
@@ -128,17 +128,17 @@ func (_ *Dialect) Insert(tableName string, fieldsValues map[string]interface{}) 
     return query.String(), args
 }
 
-func (_ *Dialect) Update(tableName string, fieldsValues map[string]interface{}, w *dbmdl.WhereClause) (string, []interface{}) {
+func (_ *Dialect) Update(tableName string, fieldsValues map[string]interface{}, w dbmdl.WhereSelector) (string, []interface{}) {
     var args = []interface{}{}
     var query bytes.Buffer
 
-    args = append(args, w.Values...)
+    args = append(args, w.Values()...)
 
     query.WriteString(`UPDATE `)
     query.WriteString(tableName)
     query.WriteString(` SET `)
 
-    var amtValues = len(w.Values)
+    var amtValues = len(w.Values())
     var i = amtValues
     for f, v := range fieldsValues {
         f = conventionalizeField(f)
@@ -161,8 +161,8 @@ func (_ *Dialect) Update(tableName string, fieldsValues map[string]interface{}, 
     return query.String(), args
 }
 
-func (_ *Dialect) Count(tableName string, w *dbmdl.WhereClause) (string, []interface{}) {
-    return "SELECT COUNT(*) AS rows FROM " + tableName + " " + w.String(), w.Values
+func (_ *Dialect) Count(tableName string, w dbmdl.WhereSelector) (string, []interface{}) {
+    return "SELECT COUNT(*) AS rows FROM " + tableName + " " + w.String(), w.Values()
 }
 
 func (_ *Dialect) GetPlaceholder(offset int) string {

@@ -5,10 +5,10 @@ import (
 )
 
 // Save will add to the database or update an existing resource if a nonzero where clause is provided
-func (m *Model) Save(target interface{}, where *WhereClause, fields ...string) error {
+func (m *Model) Save(target interface{}, where WhereSelector, fields ...string) error {
 	// If there are no fields provided, select every field without an omit tag
 	if len(fields) < 1 {
-		fields = getFields(m.Type)
+		fields = m.GetFields()
 	}
 
 	// Build fieldsValues
@@ -22,7 +22,7 @@ func (m *Model) Save(target interface{}, where *WhereClause, fields ...string) e
 	// Handle query
 	var q string
 	var a []interface{}
-	if where == nil || len(where.Clauses) < 1 { // If the where clause is empty, INSERT:
+	if where == nil { // If the where clause is empty, INSERT:
 		q, a = m.Dialect.Insert(m.TableName, fieldsValues) // Build query
 	} else { // If the where clause is not empty, UPDATE:
 		q, a = m.Dialect.Update(m.TableName, fieldsValues, where) // Build query

@@ -24,6 +24,12 @@ var (
     // Field properties
 )
 
+// A where selector selects which rows must be selected. Implemented by WhereClause
+type WhereSelector interface {
+    String() string
+    Values() []interface{}
+}
+
 // Translator is an interface implemented by language dialects, such as github.com/kurt-stolle/go-dbmdl/postgres.Dialect
 type Translator interface {
     CreateTable(tableName string) string
@@ -31,12 +37,13 @@ type Translator interface {
     SetPrimaryKeys(tableName string, fields []string) string
     SetDefaultValue(n, field, def string) string
     SetNotNull(n, field string) string
-    FetchFields(tableName string, fields []string, p *Pagination, w *WhereClause) (string, []interface{})
+    FetchFields(tableName string, fields []string, p *Pagination, w WhereSelector) (string, []interface{})
     Insert(tableName string, fieldsValues map[string]interface{}) (string, []interface{})
-    Update(tableName string, fieldsValues map[string]interface{}, w *WhereClause) (string, []interface{})
-    Count(tableName string, w *WhereClause) (string, []interface{})
+    Update(tableName string, fieldsValues map[string]interface{}, w WhereSelector) (string, []interface{})
+    Count(tableName string, w WhereSelector) (string, []interface{})
     GetPlaceholder(i int) string
 }
+
 
 // Model is a modeller tied to a struct
 type Model struct {

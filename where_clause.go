@@ -9,9 +9,15 @@ import (
 
 // WhereClause is a struct for determining the WHERE selectors in the SQL query, for these often vary
 type WhereClause struct {
-	Values  []interface{}
 	Clauses []string
 	Format  string
+
+	values  []interface{}
+}
+
+// Values returns a WHERE clause's parameter values
+func (w *WhereClause) Values() []interface{} {
+	return w.values
 }
 
 // String returns a WHERE clause string
@@ -66,18 +72,18 @@ func (w *WhereClause) AddClause(clause string) (clauseIndex int) {
 // Example: w.AddValuedClause("ID="+w.GetPlaceholder(0), "2015");
 func (w *WhereClause) AddValuedClause(clause string, value interface{}) (clauseIndex int, valueIndex int) {
 	w.Clauses = append(w.Clauses, clause)
-	w.Values = append(w.Values, value)
+	w.values = append(w.values, value)
 
 	clauseIndex = len(w.Clauses) - 1
-	valueIndex = len(w.Values) - 1
+	valueIndex = len(w.values) - 1
 
 	return clauseIndex, valueIndex
 }
 
-// GetPlaceholder returns a placeholder whose index corresponds to the current amount of entries in Values
+// GetPlaceholder returns a placeholder whose index corresponds to the current amount of entries in values
 // In dbmdl, a placeholders are postgres-style: $1, $2, $3, ..., $N
 func (w *WhereClause) GetPlaceholder(offset int) string {
-	var n = len(w.Values) + 1 + offset
+	var n = len(w.values) + 1 + offset
 
 	return "$" + strconv.Itoa(n)
 }
