@@ -4,8 +4,8 @@ import (
 	"reflect"
 )
 
-// Save will add to the database or update an existing resource if a nonzero WHERE is provided
-func (m *Modeller) Save(target interface{}, where *WhereClause, fields ...string) error {
+// Save will add to the database or update an existing resource if a nonzero where clause is provided
+func (m *Model) Save(target interface{}, where *WhereClause, fields ...string) error {
 	// Set fields is not given already
 	var targetType = reflect.TypeOf(target)
 	if targetType.Kind() != reflect.Ptr {

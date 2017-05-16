@@ -2,15 +2,13 @@ package dbmdl
 
 import (
 	"database/sql"
-	"errors"
 	"log"
 	"reflect"
 	"sync"
-	"eventix.io/ccna/db"
 )
 
-// Fetch loads data from a database, returns an array of interface
-func (m *Modeller) Fetch(pag *Pagination, where *WhereClause, fields ...string) ([]interface{}, error) {
+// Fetch loads data from a database, returns an array of interface, pagination is also updated automatically
+func (m *Model) Fetch(pag *Pagination, where *WhereClause, fields ...string) ([]interface{}, error) {
 	// If we did not supply and fields to be selected, select all fields
 	if len(fields) < 1 {
 		fields = getFields(m.Type)
@@ -82,6 +80,6 @@ func (m *Modeller) Fetch(pag *Pagination, where *WhereClause, fields ...string) 
 }
 
 // FetchAny loads data from the database like Fetch, but without requiring a WhereClause
-func (m *Modeller) FetchAny(pag *Pagination, fields ...string) ([]interface{}, error){
+func (m *Model) FetchAny(pag *Pagination, fields ...string) ([]interface{}, error){
 	return m.Fetch(pag, new(WhereClause), fields...)
 }

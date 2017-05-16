@@ -38,22 +38,22 @@ type Translator interface {
     GetPlaceholder(i int) string
 }
 
-// Modeller is a modeller tied to a struct
-type Modeller struct {
+// Model is a modeller tied to a struct
+type Model struct {
     TableName   string
     Type        reflect.Type
     Dialect     Translator
     GetDatabase func() *sql.DB
 }
 
-// NewModeller creates a new Modeller for a certain database and reflection type
+// NewModeller creates a new Model for a certain database and reflection type
 // Modellers should be saved and re-used
-func NewModeller(tableName string, reflectionType reflect.Type, dialect Translator, getDatabaseFunc func() sql.DB) *Modeller {
+func NewModel(tableName string, reflectionType reflect.Type, dialect Translator, getDatabaseFunc func() *sql.DB) *Model {
     for reflectionType.Kind() == reflect.Ptr {
         reflectionType = reflectionType.Elem()
     }
 
-    mdl := new(Modeller)
+    mdl := new(Model)
     mdl.TableName = tableName
     mdl.Type = reflectionType
     mdl.Dialect = dialect

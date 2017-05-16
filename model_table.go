@@ -1,14 +1,11 @@
 package dbmdl
 
 import (
-	"database/sql"
-	"errors"
 	"log"
-	"eventix.io/ccna/db"
 )
 
 // CreateTable creates a table for the struct in the database
-func (m *Modeller) CreateTable() error {
+func (m *Model) CreateTable() error {
 	// Build fields list
 	var fields []([2]string)
 	var primaryKeys []string

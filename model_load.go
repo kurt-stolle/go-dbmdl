@@ -4,12 +4,10 @@ import (
 	"database/sql"
 	"log"
 	"reflect"
-	"eventix.io/ccna/db"
 )
 
 // Load will load a single struct from the database based on a where clause
-// Target is a pointer to a struct
-func (m *Modeller) Load(target interface{}, where *WhereClause) error {
+func (m *Model) Load(target interface{}, where *WhereClause) error {
 	targetValue := reflect.ValueOf(target).Elem()
 
 	// Get the fields

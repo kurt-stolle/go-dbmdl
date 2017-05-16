@@ -1,13 +1,12 @@
 package dbmdl
 
 import (
-	"database/sql"
 	"reflect"
 )
 
 // Patch works much the same as Save, but only performs an update according to a map.
 // Patch is used when there is no struct initialization required, e.g. when only fields in the database need to be updated.
-func (m *Modeller) Patch(where *WhereClause, update map[string]interface{}) error {
+func (m *Model) Patch(where *WhereClause, update map[string]interface{}) error {
 	// Create a new struct so that we can pass this to Save
 	var newStruct = reflect.New(m.Type)
 	var fields []string

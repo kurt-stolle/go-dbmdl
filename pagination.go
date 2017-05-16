@@ -1,11 +1,9 @@
 package dbmdl
 
 import (
-    "database/sql"
     "math"
     "strconv"
     "strings"
-    "eventix.io/ccna/db"
 )
 
 // Sorting returns an array of how a result will be sorted
@@ -69,7 +67,7 @@ func (p *Pagination) OrderAscending(field string) {
 }
 
 // Load will populate the struct according to a table name and where clause
-func (p *Pagination) Load(m *Modeller, where *WhereClause) error {
+func (p *Pagination) Load(m *Model, where *WhereClause) error {
     // First is always 1
     p.First = 1
 
