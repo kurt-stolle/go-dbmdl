@@ -6,15 +6,6 @@ import (
 
 // Save will add to the database or update an existing resource if a nonzero where clause is provided
 func (m *Model) Save(target interface{}, where *WhereClause, fields ...string) error {
-	// Set fields is not given already
-	var targetType = reflect.TypeOf(target)
-	if targetType.Kind() != reflect.Ptr {
-		panic("Target is not a pointer")
-	} else if targetType != m.Type {
-		panic("Invalid type passed to Save() target parameter")
-	}
-	targetType = targetType.Elem()
-
 	// If there are no fields provided, select every field without an omit tag
 	if len(fields) < 1 {
 		fields = getFields(m.Type)
