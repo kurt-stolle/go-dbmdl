@@ -9,9 +9,12 @@ import (
 
 // Fetch loads data from a database, returns an array of interface, pagination is also updated automatically
 func (m *Model) Fetch(pag *Pagination, where WhereSelector, fields ...string) ([]interface{}, error) {
+	var from FromSpecifier
 	// If we did not supply and fields to be selected, select all fields
 	if len(fields) < 1 {
-		fields = m.GetFields()
+		fields, from = m.GetFields()
+	} else {
+		from = &FromClause{Table: m.TableName}
 	}
 
 	// Do the following tasks concurrently
@@ -23,7 +26,7 @@ func (m *Model) Fetch(pag *Pagination, where WhereSelector, fields ...string) ([
 	// Build and execute the Query
 	wg.Add(1)
 	go func() {
-		q, a := m.Dialect.FetchFields(m.TableName, fields, pag, where)
+		q, a := m.Dialect.FetchFields(from, fields, pag, where)
 
 		r, err := m.GetDatabase().Query(q, a...)
 		if err != nil && err != sql.ErrNoRows {
@@ -80,6 +83,6 @@ func (m *Model) Fetch(pag *Pagination, where WhereSelector, fields ...string) ([
 }
 
 // FetchAny loads data from the database like Fetch, but without requiring a WhereClause
-func (m *Model) FetchAny(pag *Pagination, fields ...string) ([]interface{}, error){
+func (m *Model) FetchAny(pag *Pagination, fields ...string) ([]interface{}, error) {
 	return m.Fetch(pag, new(WhereClause), fields...)
 }

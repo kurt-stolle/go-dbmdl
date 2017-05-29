@@ -8,7 +8,7 @@ import (
 func (m *Model) Save(target interface{}, where WhereSelector, fields ...string) error {
 	// If there are no fields provided, select every field without an omit tag
 	if len(fields) < 1 {
-		fields = m.GetFields()
+		fields, _ = m.GetFields()
 	}
 
 	// Build fieldsValues
@@ -27,7 +27,6 @@ func (m *Model) Save(target interface{}, where WhereSelector, fields ...string) 
 	} else { // If the where clause is not empty, UPDATE:
 		q, a = m.Dialect.Update(m.TableName, fieldsValues, where) // Build query
 	}
-
 
 	// Wait for response and close channel
 	if _, err := m.GetDatabase().Exec(q, a...); err != nil {
