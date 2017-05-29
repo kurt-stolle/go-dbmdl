@@ -11,10 +11,10 @@ func (m *Model) Load(target interface{}, where *WhereClause) error {
 	targetValue := reflect.ValueOf(target).Elem()
 
 	// Get the fields
-	fields, _ := m.GetFields()
+	fields, from := m.GetFields()
 
 	// Query using the same shit as Fetch Fields
-	q, a := m.Dialect.FetchFields(m.TableName, fields, NewPagination(1, 1), where)
+	q, a := m.Dialect.FetchFields(from, fields, NewPagination(1, 1), where)
 
 	r := m.GetDatabase().QueryRow(q, a...)
 
