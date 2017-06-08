@@ -8,13 +8,17 @@ import (
 )
 
 // Fetch loads data from a database, returns an array of interface, pagination is also updated automatically
-func (m *Model) Fetch(pag *Pagination, where WhereSelector, fields ...string) ([]interface{}, error) {
+func (m *Model) Fetch(pag *Pagination, where WhereSelector, fieldsStrings ...string) ([]interface{}, error) {
 	var from FromSpecifier
+	var fields []*FieldMapping
 	// If we did not supply and fields to be selected, select all fields
-	if len(fields) < 1 {
+	if len(fieldsStrings) < 1 {
 		fields, from = m.GetFields()
 	} else {
-		from = &FromClause{Table: m.TableName}
+		from = &FromClause{table: m.TableName}
+		for _, f := range fieldsStrings {
+			fields = append(fields, &FieldMapping{Link: f})
+		}
 	}
 
 	// Do the following tasks concurrently
@@ -33,8 +37,8 @@ func (m *Model) Fetch(pag *Pagination, where WhereSelector, fields ...string) ([
 			log.Fatal(err)
 		}
 		defer r.Close()
-		for _, name := range fields {
-			f, found := m.Type.FieldByName(name)
+		for _, field := range fields {
+			f, found := m.Type.FieldByName(field.Link)
 			if !found {
 				continue
 			}
@@ -51,7 +55,7 @@ func (m *Model) Fetch(pag *Pagination, where WhereSelector, fields ...string) ([
 			r.Scan(dummyVariablesAddresses...) // Scan into the slice we populated with dummy variables earlier
 
 			for i, v := range dummyVariables {
-				s.Elem().FieldByName(fields[i]).Set(v) // Set values in our new struct
+				s.Elem().FieldByName(fields[i].Link).Set(v) // Set values in our new struct
 			}
 
 			data = append(data, s.Interface()) // Append the interface value of the pointer to the previously created targetType type.

@@ -1,11 +1,11 @@
 package dbmdl
 
-func (m *Model) GetFields() ([]string, FromSpecifier) {
-	var fields []string
+func (m *Model) GetFields() ([]*FieldMapping, FromSpecifier) {
+	var fields []*FieldMapping
 	var clause = new(FromClause)
 
 	// Root tale
-	clause.Table = m.TableName
+	clause.table = m.TableName
 
 	// Selection loop
 FieldLoop:
@@ -19,11 +19,11 @@ FieldLoop:
 		key := params[0]
 		params = params[1:]
 
-		if res := regExtern.FindAllString(key, -1); len(res) > 0 {
+		if res := regExtern.FindAllStringSubmatch(key, -1); len(res) > 0 {
 			// External key
-			var extFieldName = res[0]
-			var extTableName = res[1]
-			var extJoinCondition = res[3]
+			var extFieldName = res[0][1]
+			var extTableName = res[0][2]
+			var extJoinCondition = res[0][3]
 
 			// Create a new leaf for the from clause
 			clause.AddLeafs(&FromLeaf{
@@ -32,7 +32,15 @@ FieldLoop:
 			})
 
 			// Add the field to the list, but prepend the table name
-			fields = append(fields, extTableName+"."+extFieldName)
+			fields = append(fields, &FieldMapping{
+				Link:   field.Name,
+				Clause: extFieldName,
+			})
+		} else if res := regSelect.FindAllStringSubmatch(key, -1); len(res) > 0 {
+			fields = append(fields, &FieldMapping{
+				Link:   field.Name,
+				Clause: res[0][1],
+			})
 		} else {
 			//	Data type definition
 			for _, s := range params {
@@ -41,7 +49,9 @@ FieldLoop:
 				}
 			}
 
-			fields = append(fields, field.Name)
+			fields = append(fields, &FieldMapping{
+				Link: field.Name,
+			})
 		}
 	}
 

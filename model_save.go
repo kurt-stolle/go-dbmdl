@@ -8,7 +8,12 @@ import (
 func (m *Model) Save(target interface{}, where WhereSelector, fields ...string) error {
 	// If there are no fields provided, select every field without an omit tag
 	if len(fields) < 1 {
-		fields, _ = m.GetFields()
+		fieldsMapping, _ := m.GetFields()
+		for _, f := range fieldsMapping {
+			if f.Clause == "" {
+				fields = append(fields, f.Link)
+			}
+		}
 	}
 
 	// Build fieldsValues

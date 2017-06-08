@@ -9,7 +9,7 @@ type FromLeaf struct {
 
 // FromClause implements FromSpecifier, used to determine which table to select things from
 type FromClause struct {
-	Table string
+	table string
 	Leafs []*FromLeaf
 }
 
@@ -20,7 +20,7 @@ func (fc *FromClause) AddLeafs(l ...*FromLeaf) {
 
 // String created a string of the form `FROM <table_name> JOIN <specification>`
 func (fc *FromClause) String() string {
-	var str = `FROM ` + fc.Table
+	var str = `FROM ` + fc.table
 
 	for _, l := range fc.Leafs {
 		if l.JoinType == "" {
@@ -32,4 +32,9 @@ func (fc *FromClause) String() string {
 	}
 
 	return str
+}
+
+// GetTable returns the root table
+func (fc *FromClause) GetTable() string {
+	return fc.table
 }

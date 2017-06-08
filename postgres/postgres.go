@@ -9,7 +9,7 @@ import (
 )
 
 func conventionalizeField(s string) string {
-	return `"` + strings.Trim(strings.ToLower(s), " \n\t\x00") + `"`
+	return `"` + strings.ToLower(s) + `"`
 }
 
 // Dialect is the postgres dialect
@@ -60,10 +60,14 @@ func (_ *Dialect) SetNotNull(n string, v string) string {
 	return `ALTER TABLE ` + n + ` ALTER COLUMN ` + v + ` SET NOT NULL`
 }
 
-func (_ *Dialect) FetchFields(f dbmdl.FromSpecifier, fieldsSrc []string, p *dbmdl.Pagination, w dbmdl.WhereSelector) (string, []interface{}) {
+func (_ *Dialect) FetchFields(f dbmdl.FromSpecifier, fieldsSrc []*dbmdl.FieldMapping, p *dbmdl.Pagination, w dbmdl.WhereSelector) (string, []interface{}) {
 	var fields = make([]string, len(fieldsSrc))
 	for i, v := range fieldsSrc {
-		fields[i] = conventionalizeField(v)
+		if v.Clause == "" {
+			fields[i] = f.GetTable() + "." + conventionalizeField(v.Link)
+			continue
+		}
+		fields[i] = v.Clause
 	}
 
 	var query bytes.Buffer
@@ -72,6 +76,7 @@ func (_ *Dialect) FetchFields(f dbmdl.FromSpecifier, fieldsSrc []string, p *dbmd
 	// Basic query
 	query.WriteString(`SELECT `)
 	query.WriteString(strings.Join(fields, ", "))
+	query.WriteByte(' ')
 	query.WriteString(f.String())
 
 	// Where clauses

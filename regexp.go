@@ -4,5 +4,6 @@ import "regexp"
 
 var (
 	regDefault = regexp.MustCompile("default .+")
-	regExtern  = regexp.MustCompile("extern (.*) from (.*) on (.*)")
+	regExtern  = regexp.MustCompile("extern (.+) from (.+) on (.+)")
+	regSelect  = regexp.MustCompile("select (.+)")
 )

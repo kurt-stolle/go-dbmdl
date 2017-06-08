@@ -24,12 +24,13 @@ var (
 	// Field properties
 )
 
-// A from specifier determines JOIN clauses and the root table. Implemented by FromClause
+// FromSpecifier determines JOIN clauses and the root table. Implemented by FromClause
 type FromSpecifier interface {
 	String() string
+	GetTable() string // returns root table
 }
 
-// A where selector selects which rows must be selected. Implemented by WhereClause
+// WhereSelector selects which rows must be selected. Implemented by WhereClause
 type WhereSelector interface {
 	String() string
 	Values() []interface{}
@@ -42,7 +43,7 @@ type Translator interface {
 	SetPrimaryKeys(tableName string, fields []string) string
 	SetDefaultValue(n, field, def string) string
 	SetNotNull(n, field string) string
-	FetchFields(from FromSpecifier, fields []string, p *Pagination, w WhereSelector) (string, []interface{})
+	FetchFields(from FromSpecifier, fields []*FieldMapping, p *Pagination, w WhereSelector) (string, []interface{})
 	Insert(tableName string, fieldsValues map[string]interface{}) (string, []interface{})
 	Update(tableName string, fieldsValues map[string]interface{}, w WhereSelector) (string, []interface{})
 	Count(tableName string, w WhereSelector) (string, []interface{})
@@ -57,7 +58,7 @@ type Model struct {
 	GetDatabase func() *sql.DB
 }
 
-// NewModeller creates a new Model for a certain database and reflection type
+// NewModel creates a new Model for a certain database and reflection type
 // Modellers should be saved and re-used
 func NewModel(tableName string, reflectionType reflect.Type, dialect Translator, getDatabaseFunc func() *sql.DB) *Model {
 	for reflectionType.Kind() == reflect.Ptr {
@@ -71,4 +72,10 @@ func NewModel(tableName string, reflectionType reflect.Type, dialect Translator,
 	mdl.GetDatabase = getDatabaseFunc
 
 	return mdl
+}
+
+// FieldMapping maps a selection statement to a struct
+type FieldMapping struct {
+	Link   string // The name of the linked field
+	Clause string // Information for the dialect
 }

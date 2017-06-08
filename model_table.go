@@ -14,7 +14,7 @@ func (m *Model) CreateTable() error {
 
 	// Iterate over fields
 	for i := 0; i < m.Type.NumField(); i++ {
-		field := m.Type.Field(i)          // Get the field at index i
+		field := m.Type.Field(i)       // Get the field at index i
 		tag := getTagParameters(field) // Find the datatype from the dbmdl tag
 
 		if len(tag) <= 0 || tag[0] == "" {
@@ -22,7 +22,7 @@ func (m *Model) CreateTable() error {
 		}
 
 		// Is this an extern?
-		if regExtern.MatchString(tag[0]) {
+		if regExtern.MatchString(tag[0]) || regSelect.MatchString(tag[0]) {
 			continue
 		}
 
@@ -38,7 +38,7 @@ func (m *Model) CreateTable() error {
 		}
 
 		// Add the definition to the list
-		fields = append(fields, [2]string{field.Name,tag[0]})
+		fields = append(fields, [2]string{field.Name, tag[0]})
 	}
 
 	// Query

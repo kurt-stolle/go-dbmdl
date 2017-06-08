@@ -20,10 +20,10 @@ func (m *Model) Load(target interface{}, where *WhereClause) error {
 
 	// Create dummy variables that we can scan the results of the query into
 	var addresses []interface{}
-	for _, name := range fields {
-		valField := targetValue.FieldByName(name)
+	for _, field := range fields {
+		valField := targetValue.FieldByName(field.Link)
 		if !valField.CanAddr() {
-			log.Panic("dbmdl: Field '" + name + "' not found")
+			log.Panic("dbmdl: Field '" + field.Link + "' not found")
 		}
 
 		addresses = append(addresses, valField.Addr().Interface()) // Add the address of the field to the addresses array so that we can scan into this addresss later
