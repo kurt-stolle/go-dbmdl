@@ -14,8 +14,13 @@ type FromClause struct {
 }
 
 // AddLeaf appends a new FromLeaf
-func (fc *FromClause) AddLeafs(l ...*FromLeaf) {
-	fc.Leafs = append(fc.Leafs, l...)
+func (fc *FromClause) AddLeaf(l *FromLeaf) {
+	for _, c := range fc.Leafs {
+		if l.Table == c.Table {
+			return // Only allow 1 leaf per table
+		}
+	}
+	fc.Leafs = append(fc.Leafs, l)
 }
 
 // String created a string of the form `FROM <table_name> JOIN <specification>`

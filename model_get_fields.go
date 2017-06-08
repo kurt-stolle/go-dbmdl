@@ -26,7 +26,7 @@ FieldLoop:
 			var extJoinCondition = res[0][3]
 
 			// Create a new leaf for the from clause
-			clause.AddLeafs(&FromLeaf{
+			clause.AddLeaf(&FromLeaf{
 				Table:     extTableName,
 				Condition: extJoinCondition,
 			})
