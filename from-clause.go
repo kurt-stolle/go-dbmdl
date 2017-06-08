@@ -3,14 +3,19 @@ package dbmdl
 // FromLeaf specifies a conditional joining of tables, i.e. a JOIN clause
 type FromLeaf struct {
 	Table     string
-	JoinType  string // JoinType specifies "left", "right" or "inner"
+	JoinType  string // JoinType specifies "left", "right" or "inner" [optional]
 	Condition string
 }
 
 // FromClause implements FromSpecifier, used to determine which table to select things from
 type FromClause struct {
 	Table string
-	Leafs []FromLeaf
+	Leafs []*FromLeaf
+}
+
+// AddLeaf appends a new FromLeaf
+func (fc *FromClause) AddLeafs(l ...*FromLeaf) {
+	fc.Leafs = append(fc.Leafs, l...)
 }
 
 // String created a string of the form `FROM <table_name> JOIN <specification>`

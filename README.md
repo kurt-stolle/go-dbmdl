@@ -23,13 +23,14 @@ The amount of available datatypes depends on the implementation of the SQL drive
 
 The `extern` field is used only for loading a struct. It loads data from an specified table using a JOIN-clause. This is used for when structs need to be linked with data in other tables.
 
-The field must have the form `extern, <ExternField> from <Table> on <Condition> [JoinType]`
+The field must have the form `extern <ExternField> from <Table> on <Condition>`. 
+
+The join type is always `INNER`.
 
 Where:
 - `ExternField` is a field name of a table that is not our the struct's table
 - `Table` is the name of said table
-- `Condition` is a joining condition, e.g. `LocalField2=ExternField2`
-- `JoinType` is the joining type, can be `left`,`right` or `inner`. If no `JoinType` is provided, then `inner` is used.
+- `Condition` is a joining condition, e.g. `table_one.LocalField2=table_two.ExternField2`
 
 ## Example
 
