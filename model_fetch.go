@@ -34,7 +34,7 @@ func (m *Model) Fetch(pag *Pagination, where WhereSelector, fieldsStrings ...str
 
 		r, err := m.GetDatabase().Query(q, a...)
 		if err != nil && err != sql.ErrNoRows {
-			log.Fatal(err)
+			log.Fatalf("dbmdl: Failed to fetch model.\nQuery: %s\nError: %s", q, err.Error())
 		}
 		defer r.Close()
 		for _, field := range fields {
