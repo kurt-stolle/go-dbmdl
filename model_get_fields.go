@@ -15,11 +15,7 @@ FieldLoop:
 			continue
 		}
 
-		params := getTagParameters(field)
-		key := params[0]
-		params = params[1:]
-
-		if res := regExtern.FindStringSubmatch(key); len(res) > 0 {
+		if res := regExtern.FindStringSubmatch(field.Name); len(res) > 0 {
 			// External key
 			var extFieldName = res[1]
 			var extTableName = res[2]
@@ -45,12 +41,13 @@ FieldLoop:
 				Link:   field.Name,
 				Clause: extFieldName,
 			})
-		} else if res := regSelect.FindStringSubmatch(key); len(res) > 0 {
+		} else if res := regSelect.FindStringSubmatch(field.Name); len(res) > 0 {
 			fields = append(fields, &FieldMapping{
 				Link:   field.Name,
 				Clause: res[1],
 			})
 		} else {
+			params := getTagParameters(field)[1:]
 			//	Data type definition
 			for _, s := range params {
 				if s == omit {

@@ -14,15 +14,17 @@ func (m *Model) CreateTable() error {
 
 	// Iterate over fields
 	for i := 0; i < m.Type.NumField(); i++ {
-		field := m.Type.Field(i)       // Get the field at index i
-		tag := getTagParameters(field) // Find the datatype from the dbmdl tag
+		field := m.Type.Field(i) // Get the field at index i
 
-		if len(tag) <= 0 || tag[0] == "" {
+		// Is this an extern?
+		if regExtern.MatchString(field.Name) || regSelect.MatchString(field.Name) {
 			continue
 		}
 
-		// Is this an extern?
-		if regExtern.MatchString(tag[0]) || regSelect.MatchString(tag[0]) {
+		// Expand the tag
+		tag := getTagParameters(field) // Find the datatype from the dbmdl tag
+
+		if len(tag) <= 0 || tag[0] == "" {
 			continue
 		}
 
