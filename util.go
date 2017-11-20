@@ -1,7 +1,6 @@
 package dbmdl
 
 import (
-	"reflect"
 	"strings"
 )
 

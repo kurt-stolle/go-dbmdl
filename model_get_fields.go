@@ -15,15 +15,15 @@ FieldLoop:
 			continue
 		}
 
-		tag := field.Tag.Get("dbmdl")
-		if res := regExtern.FindStringSubmatch(field.Name); len(res) > 0 {
+		rawTag := field.Tag.Get("dbmdl")
+		if res := regExtern.FindStringSubmatch(rawTag); len(res) == 4 {
 			// External key
 			var extFieldName = res[1]
 			var extTableName = res[2]
 			var extJoinCondition = res[3]
 			var extJoinType string
 
-			if resJoinType := regExternJoin.FindStringSubmatch(extJoinCondition); len(res) > 0 {
+			if resJoinType := regExternJoin.FindStringSubmatch(extJoinCondition); len(res) == 3 {
 				extJoinCondition = resJoinType[1]
 				extJoinType = resJoinType[2]
 			} else {
@@ -42,13 +42,13 @@ FieldLoop:
 				Link:   field.Name,
 				Clause: extFieldName,
 			})
-		} else if res := regSelect.FindStringSubmatch(field.Name); len(res) > 0 {
+		} else if res := regSelect.FindStringSubmatch(rawTag); len(res) == 2 {
 			fields = append(fields, &FieldMapping{
 				Link:   field.Name,
 				Clause: res[1],
 			})
 		} else {
-			params := getTagParameters(tag)[1:]
+			params := getTagParameters(rawTag)[1:]
 			//	Data type definition
 			for _, s := range params {
 				if s == omit {
