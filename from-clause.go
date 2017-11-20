@@ -3,7 +3,7 @@ package dbmdl
 // FromLeaf specifies a conditional joining of tables, i.e. a JOIN clause
 type FromLeaf struct {
 	Table     string
-	JoinType  string // JoinType specifies "left", "right" or "inner" [optional]
+	JoinType  string
 	Condition string
 }
 
@@ -28,12 +28,7 @@ func (fc *FromClause) String() string {
 	var str = `FROM ` + fc.table
 
 	for _, l := range fc.Leafs {
-		if l.JoinType == "" {
-			str += " INNER "
-		} else {
-			str += " " + l.JoinType
-		}
-		str += " JOIN " + l.Table + " ON " + l.Condition
+		str += " " + l.JoinType + " JOIN " + l.Table + " ON " + l.Condition
 	}
 
 	return str

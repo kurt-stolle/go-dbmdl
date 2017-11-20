@@ -12,7 +12,7 @@ type WhereClause struct {
 	Clauses []string
 	Format  string
 
-	values  []interface{}
+	values []interface{}
 }
 
 // Values returns a WHERE clause's parameter values

@@ -19,15 +19,24 @@ FieldLoop:
 		key := params[0]
 		params = params[1:]
 
-		if res := regExtern.FindAllStringSubmatch(key, -1); len(res) > 0 {
+		if res := regExtern.FindStringSubmatch(key); len(res) > 0 {
 			// External key
-			var extFieldName = res[0][1]
-			var extTableName = res[0][2]
-			var extJoinCondition = res[0][3]
+			var extFieldName = res[1]
+			var extTableName = res[2]
+			var extJoinCondition = res[3]
+			var extJoinType string
+
+			if resJoinType := regExternJoin.FindStringSubmatch(extJoinCondition); len(res) > 0 {
+				extJoinCondition = resJoinType[1]
+				extJoinType = resJoinType[2]
+			} else {
+				extJoinType = "INNER"
+			}
 
 			// Create a new leaf for the from clause
 			clause.AddLeaf(&FromLeaf{
 				Table:     extTableName,
+				JoinType:  extJoinType,
 				Condition: extJoinCondition,
 			})
 
@@ -36,10 +45,10 @@ FieldLoop:
 				Link:   field.Name,
 				Clause: extFieldName,
 			})
-		} else if res := regSelect.FindAllStringSubmatch(key, -1); len(res) > 0 {
+		} else if res := regSelect.FindStringSubmatch(key); len(res) > 0 {
 			fields = append(fields, &FieldMapping{
 				Link:   field.Name,
-				Clause: res[0][1],
+				Clause: res[1],
 			})
 		} else {
 			//	Data type definition
