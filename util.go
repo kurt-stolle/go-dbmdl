@@ -5,8 +5,8 @@ import (
 	"strings"
 )
 
-func getTagParameters(field reflect.StructField) []string {
-	tag := strings.Split(field.Tag.Get("dbmdl"), ",")
+func getTagParameters(rawTag string) []string {
+	tag := strings.Split(rawTag, ",")
 	for i, v := range tag {
 		tag[i] = strings.Trim(v, " \t\n")
 	}

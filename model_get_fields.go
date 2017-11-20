@@ -15,6 +15,7 @@ FieldLoop:
 			continue
 		}
 
+		tag := field.Tag.Get("dbmdl")
 		if res := regExtern.FindStringSubmatch(field.Name); len(res) > 0 {
 			// External key
 			var extFieldName = res[1]
@@ -47,7 +48,7 @@ FieldLoop:
 				Clause: res[1],
 			})
 		} else {
-			params := getTagParameters(field)[1:]
+			params := getTagParameters(tag)[1:]
 			//	Data type definition
 			for _, s := range params {
 				if s == omit {

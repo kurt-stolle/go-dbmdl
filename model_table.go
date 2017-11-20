@@ -22,8 +22,7 @@ func (m *Model) CreateTable() error {
 		}
 
 		// Expand the tag
-		tag := getTagParameters(field) // Find the datatype from the dbmdl tag
-
+		tag := getTagParameters(field.Tag.Get("dbmdl")) // Find the datatype from the dbmdl tag
 		if len(tag) <= 0 || tag[0] == "" {
 			continue
 		}
