@@ -11,7 +11,7 @@ Structs can be externed with `dbmdl` tags. This tag must always start with the d
 When a datatype is provided, DBMDL can modify a linked table in the database. In most cases, the programmer would enter a datatype.
 The amount of available datatypes depends on the implementation of the SQL driver that is used.
 
-Syntax: `DataType, Parameter1, Parameter2`
+Syntax: `dbmdl:"DataType, Parameter1, Parameter2"`
 
 ##### Parameters
 
@@ -23,20 +23,20 @@ Syntax: `DataType, Parameter1, Parameter2`
 #### Select field
 The `select` field is used only for loading a struct. It adds a field to the selection statement.
 
-Syntax: `select FieldName`
+Syntax: `dbmdl:"select" dbmdl_field:"<Selectable>"`
 
 #### Extern field
 
 The `extern` field is used only for loading a struct. It loads data from an specified table using a JOIN-clause. This is used for when structs need to be linked with data in other tables.
 
-Syntax: `extern <ExternField> from <Table> on <Condition>`. 
+Syntax: `dbmdl:"extern" dbmdl_field:"<ExternField>" dbmdl_table="<ExternTable>" dbmdl_condition="<Condition>"`. 
 
 Where:
 - `ExternField` is a field name of a table that is not our the struct's table
 - `Table` is the name of said table
 - `Condition` is a joining condition, e.g. `table_one.LocalField2=table_two.ExternField2`
 
-The join type is always `INNER`.
+The join type is always `INNER`, unless a `dbmdl_join` tag is defined. 
 
 ## Example
 

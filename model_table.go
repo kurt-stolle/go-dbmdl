@@ -18,7 +18,7 @@ func (m *Model) CreateTable() error {
 		rawTag := field.Tag.Get("dbmdl")
 
 		// Is this an extern?
-		if regExtern.MatchString(rawTag) || regSelect.MatchString(rawTag) {
+		if rawTag == "select" || rawTag == "extern" {
 			continue
 		}
 

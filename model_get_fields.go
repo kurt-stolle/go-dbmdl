@@ -16,17 +16,22 @@ FieldLoop:
 		}
 
 		rawTag := field.Tag.Get("dbmdl")
-		if res := regExtern.FindStringSubmatch(rawTag); len(res) == 4 {
+		if rawTag == "extern" {
 			// External key
-			var extFieldName = res[1]
-			var extTableName = res[2]
-			var extJoinCondition = res[3]
-			var extJoinType string
+			var extFieldName = field.Tag.Get("dbmdl_field")
+			var extTableName = field.Tag.Get("dbmdl_table")
+			var extJoinCondition = field.Tag.Get("dbmdl_condition")
+			var extJoinType = field.Tag.Get("dbmdl_join")
 
-			if resJoinType := regExternJoin.FindStringSubmatch(extJoinCondition); len(res) == 3 {
-				extJoinCondition = resJoinType[1]
-				extJoinType = resJoinType[2]
-			} else {
+			if extFieldName == "" {
+				panic("dbmdl: Field '" + field.Name + "' in '" + m.Type.Name() + "' recognized as extern, but misses dbmdl_field tag")
+			} else if extTableName == "" {
+				panic("dbmdl: Field '" + field.Name + "' in '" + m.Type.Name() + "' recognized as extern, but misses dbmdl_table tag")
+			} else if extJoinCondition == "" {
+				panic("dbmdl: Field '" + field.Name + "' in '" + m.Type.Name() + "' recognized as extern, but misses dbmdl_condition tag")
+			}
+
+			if extJoinType == "" {
 				extJoinType = "INNER"
 			}
 
@@ -42,10 +47,14 @@ FieldLoop:
 				Link:   field.Name,
 				Clause: extFieldName,
 			})
-		} else if res := regSelect.FindStringSubmatch(rawTag); len(res) == 2 {
+		} else if rawTag == "select" {
+			var cls = field.Tag.Get("dbmdl_field")
+			if cls == "" {
+				panic("dbmdl: Field '" + field.Name + "' in '" + m.Type.Name() + "' recognized as select, but misses dbmdl_field tag")
+			}
 			fields = append(fields, &FieldMapping{
 				Link:   field.Name,
-				Clause: res[1],
+				Clause: cls,
 			})
 		} else {
 			params := getTagParameters(rawTag)[1:]

@@ -31,7 +31,7 @@ func (m *Model) Fetch(pag *Pagination, where WhereSelector, fieldsStrings ...str
 	wg.Add(1)
 	go func() {
 		q, a := m.Dialect.FetchFields(from, fields, pag, where)
-
+		//log.Println(q)
 		r, err := m.GetDatabase().Query(q, a...)
 		if err != nil && err != sql.ErrNoRows {
 			log.Fatalf("dbmdl: Failed to fetch model.\nQuery: %s\nError: %s", q, err.Error())
