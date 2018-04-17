@@ -14,7 +14,9 @@ func (m *Model) GetDummies(fields ...string) ([]interface{}, error) {
 	for i,f := range fields {
 		tp,ok := m.Type.FieldByName(f)
 		if !ok {
-			return nil, errors.New("dbmdl: field "+f+" does not exist in "+m.Type.Name())
+			return nil, errors.New("dbmdl: field "+f+" does not exist")
+		} else if fieldNotInDatabase(tp) {
+			return nil, errors.New("dbmdl: field "+f+" is not a field replicated in a database")
 		}
 
 		addr[i] = reflect.New(tp.Type).Interface() // Create a new variable and store the address at the index matching the fields slice
